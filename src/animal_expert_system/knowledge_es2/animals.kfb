@@ -1,0 +1,14 @@
+# Hechos universales de la base de conocimiento.
+
+perfil_animal(jaguar, mamifero, carnivora, felidae, selva, carnivoro, pelaje_moteado, viviparo, nocturno)
+perfil_animal(puma, mamifero, carnivora, felidae, montana, carnivoro, pelaje_uniforme, viviparo, nocturno)
+perfil_animal(ocelote, mamifero, carnivora, felidae, selva, carnivoro, pelaje_moteado_pequeno, viviparo, arboricola)
+
+perfil_animal(capibara, mamifero, roedores, caviidae, humedal, herbivoro, pelaje_grueso, viviparo, semiacuatico)
+perfil_animal(perezoso, mamifero, pilosa, bradypodidae, copa_de_arboles, herbivoro, garras_largas, viviparo, arboricola)
+perfil_animal(oso_hormiguero, mamifero, pilosa, myrmecophagidae, sabanas_y_bosques, insectivoro, hocico_alargado, viviparo, terrestre)
+
+perfil_animal(murcielago, mamifero, chiroptera, phyllostomidae, cuevas, insectivoro, alas, viviparo, nocturno)
+perfil_animal(delfin, mamifero, cetacea, delphinidae, acuatico, carnivoro, aletas, viviparo, acuatico)
+perfil_animal(mono, mamifero, primates, cebidae, bosque, omnivoro, pulgar_oponible, viviparo, arboricola)
+

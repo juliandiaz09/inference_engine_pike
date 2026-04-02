@@ -1,0 +1,3 @@
+# Python 3.10 compatible.
+# Tkinter is included with the standard library.
+# Pyke is vendored locally in ./pyke-master, so no external install is required.

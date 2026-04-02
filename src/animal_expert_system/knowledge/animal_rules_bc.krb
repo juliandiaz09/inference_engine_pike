@@ -1,0 +1,13 @@
+# Reglas de encadenamiento hacia atrás.
+
+taxonomia
+    use taxonomia($animal, $clase, $orden, $familia)
+    when
+        animales.perfil_animal($animal, $clase, $orden, $familia,
+                               $habitat, $dieta, $morfologia, $reproduccion,
+                               $actividad)
+        animales.caracteristica(habitat, $habitat)
+        animales.caracteristica(diet, $dieta)
+        animales.caracteristica(morphology, $morfologia)
+        animales.caracteristica(reproduction, $reproduccion)
+        animales.caracteristica(activity, $actividad)

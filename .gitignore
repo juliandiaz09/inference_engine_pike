@@ -1,0 +1,5 @@
+__pycache__/
+*.pyc
+.venv310/
+src/animal_expert_system/knowledge/compiled_krb/
+pyke-master
