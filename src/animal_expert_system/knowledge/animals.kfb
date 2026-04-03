@@ -1,13 +1,23 @@
-# Hechos universales de la base de conocimiento.
+# Bird knowledge base - Verified taxonomy
+# Format: bird_profile(bird_id, scientific_name, class_name, order, family, habitat, diet, morphology, size, activity)
 
-perfil_animal(jaguar, mamifero, carnivora, felidae, selva, carnivoro, pelaje_moteado, viviparo, nocturno)
-perfil_animal(puma, mamifero, carnivora, felidae, montana, carnivoro, pelaje_uniforme, viviparo, nocturno)
-perfil_animal(ocelote, mamifero, carnivora, felidae, selva, carnivoro, pelaje_moteado_pequeno, viviparo, arboricola)
+bird_profile(aguila_real, "Aquila chrysaetos", Aves, Accipitriformes, Accipitridae, mountains, carnivore, hooked_beak, very_large, diurnal)
+bird_profile(gavilan_cola_roja, "Buteo jamaicensis", Aves, Accipitriformes, Accipitridae, forest, carnivore, hooked_beak, large, diurnal)
 
-perfil_animal(capibara, mamifero, roedores, caviidae, humedal, herbivoro, pelaje_grueso, viviparo, semiacuatico)
-perfil_animal(perezoso, mamifero, pilosa, bradypodidae, copa_de_arboles, herbivoro, garras_largas, viviparo, arboricola)
-perfil_animal(oso_hormiguero, mamifero, pilosa, myrmecophagidae, sabanas_y_bosques, insectivoro, hocico_alargado, viviparo, terrestre)
+bird_profile(buho_real, "Bubo virginianus", Aves, Strigiformes, Strigidae, forest, carnivore, large_eyes, large, nocturnal)
+bird_profile(lechuza_campanario, "Tyto alba", Aves, Strigiformes, Tytonidae, urban, carnivore, short_beak, medium, nocturnal)
 
-perfil_animal(murcielago, mamifero, chiroptera, phyllostomidae, cuevas, insectivoro, alas, viviparo, nocturno)
-perfil_animal(delfin, mamifero, cetacea, delphinidae, acuatico, carnivoro, aletas, viviparo, acuatico)
-perfil_animal(mono, mamifero, primates, cebidae, bosque, omnivoro, pulgar_oponible, viviparo, arboricola)
+bird_profile(cuervo_comun, "Corvus corax", Aves, Passeriformes, Corvidae, urban, omnivore, dark_plumage, large, diurnal)
+bird_profile(golondrina_azul_blanca, "Hirundo rustica", Aves, Passeriformes, Hirundinidae, urban, insectivore, long_wings, small, migratory)
+
+bird_profile(loro_amazonico, "Amazona viridis", Aves, Psittaciformes, Psittacidae, rainforest, herbivore, curved_beak, large, diurnal)
+
+bird_profile(paloma_comun, "Columba livia", Aves, Columbiformes, Columbidae, urban, herbivore, straight_beak, medium, diurnal)
+
+bird_profile(gaviota_pico_anillado, "Larus delawarensis", Aves, Charadriiformes, Laridae, coastal, omnivore, webbed_feet, medium, diurnal)
+
+bird_profile(cormoran_grande, "Phalacrocorax carbo", Aves, Pelecaniformes, Phalacrocoracidae, coastal, piscivore, elongated_beak, large, diurnal)
+
+bird_profile(garza_azul, "Ardea herodias", Aves, Pelecaniformes, Ardeidae, wetland, piscivore, long_neck, large, diurnal)
+
+bird_profile(grulla_canadiense, "Antigone canadensis", Aves, Gruiformes, Gruidae, wetland, omnivore, long_neck, very_large, migratory)

@@ -1,4 +1,4 @@
-"""Entry point for the animal expert system GUI."""
+"""Entry point for the avian expert system GUI."""
 
 from pathlib import Path
 import sys
