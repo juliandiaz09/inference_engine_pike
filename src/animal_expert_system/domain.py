@@ -1,11 +1,11 @@
-"""Domain data used by the GUI and the inference layer."""
+"""Domain data — sistema experto de felinos grandes."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 
-FEATURE_ORDER = ("habitat", "diet", "morphology", "reproduction", "activity")
+FEATURE_ORDER = ("habitat", "patron_pelaje", "capacidad", "region", "actividad")
 
 MODE_FORWARD = "adelante"
 MODE_BACKWARD = "atras"
@@ -26,44 +26,46 @@ MODE_DESCRIPTIONS = {
     ),
 }
 
+# Traducciones español -> inglés para la base de conocimiento interna
 FEATURE_TRANSLATIONS = {
     "habitat": {
-        "selva": "rainforest",
-        "montana": "mountains",
-        "humedal": "wetlands",
-        "copa_de_arboles": "forest_canopy",
-        "sabanas_y_bosques": "savanna_forest",
-        "cuevas": "caves",
-        "acuatico": "aquatic",
-        "bosque": "forest",
+        "selva_tropical":    "tropical_rainforest",
+        "sabana":            "savanna",
+        "montana":           "mountain",
+        "bosque_templado":   "temperate_forest",
+        "desierto":          "desert",
+        "tundra_alpina":     "alpine_tundra",
+        "manglar":           "mangrove",
+        "bosque_nublado":    "cloud_forest",
     },
-    "diet": {
-        "carnivoro": "carnivore",
-        "herbivoro": "herbivore",
-        "insectivoro": "insectivore",
-        "omnivoro": "omnivore",
-        "piscivoro": "piscivore",
+    "patron_pelaje": {
+        "manchas_roseta":    "rosette_spots",
+        "rayas_verticales":  "vertical_stripes",
+        "manchas_solidas":   "solid_spots",
+        "pelaje_uniforme":   "plain_coat",
+        "manchas_nube":      "cloud_spots",
+        "manchas_pequenas":  "small_spots",
     },
-    "morphology": {
-        "pelaje_moteado": "spotted_fur",
-        "pelaje_moteado_pequeno": "small_spotted_fur",
-        "pelaje_uniforme": "plain_fur",
-        "pelaje_grueso": "coarse_fur",
-        "garras_largas": "long_claws",
-        "hocico_alargado": "elongated_snout",
-        "alas": "wings",
-        "aletas": "fins",
-        "pulgar_oponible": "opposable_thumb",
+    "capacidad": {
+        "rugir":             "roar",
+        "ronronear":         "purr",
+        "trepar":            "climb",
+        "nadar":             "swim",
+        "velocidad_extrema": "extreme_speed",
     },
-    "reproduction": {
-        "viviparo": "viviparous",
+    "region": {
+        "america":           "america",
+        "africa":            "africa",
+        "asia":              "asia",
+        "africa_asia":       "africa_asia",
+        "asia_central":      "central_asia",
+        "sudeste_asiatico":  "southeast_asia",
     },
-    "activity": {
-        "nocturno": "nocturnal",
-        "arboricola": "arboreal",
-        "semiacuatico": "semi_aquatic",
-        "terrestre": "terrestrial",
-        "acuatico": "aquatic",
+    "actividad": {
+        "nocturno":          "nocturnal",
+        "diurno":            "diurnal",
+        "crepuscular":       "crepuscular",
+        "arboricola":        "arboreal",
     },
 }
 
@@ -73,75 +75,118 @@ REVERSE_FEATURE_TRANSLATIONS = {
 }
 
 FEATURE_LABELS = {
-    "habitat": "Hábitat",
-    "diet": "Tipo de alimentación",
-    "morphology": "Morfología",
-    "reproduction": "Reproducción",
-    "activity": "Actividad",
+    "habitat":       "Hábitat",
+    "patron_pelaje": "Patrón de pelaje",
+    "capacidad":     "Capacidad especial",
+    "region":        "Región geográfica",
+    "actividad":     "Actividad",
 }
 
 FEATURE_OPTIONS = {
     "habitat": [
-        "selva",
+        "selva_tropical",
+        "sabana",
         "montana",
-        "humedal",
-        "copa_de_arboles",
-        "sabanas_y_bosques",
-        "cuevas",
-        "acuatico",
-        "bosque",
+        "bosque_templado",
+        "desierto",
+        "tundra_alpina",
+        "manglar",
+        "bosque_nublado",
     ],
-    "diet": [
-        "carnivoro",
-        "herbivoro",
-        "insectivoro",
-        "omnivoro",
-        "piscivoro",
-    ],
-    "morphology": [
-        "pelaje_moteado",
-        "pelaje_moteado_pequeno",
+    "patron_pelaje": [
+        "manchas_roseta",
+        "rayas_verticales",
+        "manchas_solidas",
         "pelaje_uniforme",
-        "pelaje_grueso",
-        "garras_largas",
-        "hocico_alargado",
-        "alas",
-        "aletas",
-        "pulgar_oponible",
+        "manchas_nube",
+        "manchas_pequenas",
     ],
-    "reproduction": [
-        "viviparo",
+    "capacidad": [
+        "rugir",
+        "ronronear",
+        "trepar",
+        "nadar",
+        "velocidad_extrema",
     ],
-    "activity": [
+    "region": [
+        "america",
+        "africa",
+        "asia",
+        "africa_asia",
+        "asia_central",
+        "sudeste_asiatico",
+    ],
+    "actividad": [
         "nocturno",
+        "diurno",
+        "crepuscular",
         "arboricola",
-        "semiacuatico",
-        "terrestre",
-        "acuatico",
     ],
 }
 
 EXAMPLE_PRESETS = {
     "Jaguar": {
-        "habitat": "selva",
-        "diet": "carnivoro",
-        "morphology": "pelaje_moteado",
-        "reproduction": "viviparo",
-        "activity": "nocturno",
+        "habitat":       "selva_tropical",
+        "patron_pelaje": "manchas_roseta",
+        "capacidad":     "nadar",
+        "region":        "america",
+        "actividad":     "nocturno",
     },
-    "Capibara": {
-        "habitat": "humedal",
-        "diet": "herbivoro",
-        "morphology": "pelaje_grueso",
-        "reproduction": "viviparo",
-        "activity": "semiacuatico",
+    "León": {
+        "habitat":       "sabana",
+        "patron_pelaje": "pelaje_uniforme",
+        "capacidad":     "rugir",
+        "region":        "africa",
+        "actividad":     "crepuscular",
     },
-    "Delfin": {
-        "habitat": "acuatico",
-        "diet": "carnivoro",
-        "morphology": "aletas",
-        "reproduction": "viviparo",
-        "activity": "acuatico",
+    "Tigre": {
+        "habitat":       "selva_tropical",
+        "patron_pelaje": "rayas_verticales",
+        "capacidad":     "nadar",
+        "region":        "asia",
+        "actividad":     "nocturno",
+    },
+    "Leopardo": {
+        "habitat":       "bosque_templado",
+        "patron_pelaje": "manchas_roseta",
+        "capacidad":     "trepar",
+        "region":        "africa_asia",
+        "actividad":     "nocturno",
+    },
+    "Guepardo": {
+        "habitat":       "sabana",
+        "patron_pelaje": "manchas_solidas",
+        "capacidad":     "velocidad_extrema",
+        "region":        "africa",
+        "actividad":     "diurno",
+    },
+    "Puma": {
+        "habitat":       "montana",
+        "patron_pelaje": "pelaje_uniforme",
+        "capacidad":     "ronronear",
+        "region":        "america",
+        "actividad":     "crepuscular",
+    },
+    "Leopardo de las Nieves": {
+        "habitat":       "tundra_alpina",
+        "patron_pelaje": "manchas_roseta",
+        "capacidad":     "ronronear",
+        "region":        "asia_central",
+        "actividad":     "crepuscular",
+    },
+    "Leopardo Nublado": {
+        "habitat":       "bosque_nublado",
+        "patron_pelaje": "manchas_nube",
+        "capacidad":     "trepar",
+        "region":        "sudeste_asiatico",
+        "actividad":     "arboricola",
+    },
+    "Ocelote": {
+        "habitat":       "selva_tropical",
+        "patron_pelaje": "manchas_pequenas",
+        "capacidad":     "trepar",
+        "region":        "america",
+        "actividad":     "nocturno",
     },
 }
 
@@ -152,6 +197,7 @@ class TaxonomyMatch:
     class_name: str
     order: str
     family: str
+    genus: str
 
 
 @dataclass(frozen=True)
@@ -160,6 +206,7 @@ class AnimalProfile:
     class_name: str
     order: str
     family: str
+    genus: str
     features: dict[str, str]
 
 
@@ -169,12 +216,69 @@ ANIMAL_PROFILES = [
         class_name="mammalia",
         order="carnivora",
         family="felidae",
+        genus="panthera",
         features={
-            "habitat": "rainforest",
-            "diet": "carnivore",
-            "morphology": "spotted_fur",
-            "reproduction": "viviparous",
-            "activity": "nocturnal",
+            "habitat":       "tropical_rainforest",
+            "patron_pelaje": "rosette_spots",
+            "capacidad":     "swim",
+            "region":        "america",
+            "actividad":     "nocturnal",
+        },
+    ),
+    AnimalProfile(
+        animal="leon",
+        class_name="mammalia",
+        order="carnivora",
+        family="felidae",
+        genus="panthera",
+        features={
+            "habitat":       "savanna",
+            "patron_pelaje": "plain_coat",
+            "capacidad":     "roar",
+            "region":        "africa",
+            "actividad":     "crepuscular",
+        },
+    ),
+    AnimalProfile(
+        animal="tigre",
+        class_name="mammalia",
+        order="carnivora",
+        family="felidae",
+        genus="panthera",
+        features={
+            "habitat":       "tropical_rainforest",
+            "patron_pelaje": "vertical_stripes",
+            "capacidad":     "swim",
+            "region":        "asia",
+            "actividad":     "nocturnal",
+        },
+    ),
+    AnimalProfile(
+        animal="leopardo",
+        class_name="mammalia",
+        order="carnivora",
+        family="felidae",
+        genus="panthera",
+        features={
+            "habitat":       "temperate_forest",
+            "patron_pelaje": "rosette_spots",
+            "capacidad":     "climb",
+            "region":        "africa_asia",
+            "actividad":     "nocturnal",
+        },
+    ),
+    AnimalProfile(
+        animal="guepardo",
+        class_name="mammalia",
+        order="carnivora",
+        family="felidae",
+        genus="acinonyx",
+        features={
+            "habitat":       "savanna",
+            "patron_pelaje": "solid_spots",
+            "capacidad":     "extreme_speed",
+            "region":        "africa",
+            "actividad":     "diurnal",
         },
     ),
     AnimalProfile(
@@ -182,108 +286,113 @@ ANIMAL_PROFILES = [
         class_name="mammalia",
         order="carnivora",
         family="felidae",
+        genus="puma",
         features={
-            "habitat": "mountains",
-            "diet": "carnivore",
-            "morphology": "plain_fur",
-            "reproduction": "viviparous",
-            "activity": "nocturnal",
+            "habitat":       "mountain",
+            "patron_pelaje": "plain_coat",
+            "capacidad":     "purr",
+            "region":        "america",
+            "actividad":     "crepuscular",
         },
     ),
     AnimalProfile(
-        animal="ocelot",
+        animal="leopardo_de_las_nieves",
         class_name="mammalia",
         order="carnivora",
         family="felidae",
+        genus="panthera",
         features={
-            "habitat": "rainforest",
-            "diet": "carnivore",
-            "morphology": "small_spotted_fur",
-            "reproduction": "viviparous",
-            "activity": "arboreal",
+            "habitat":       "alpine_tundra",
+            "patron_pelaje": "rosette_spots",
+            "capacidad":     "purr",
+            "region":        "central_asia",
+            "actividad":     "crepuscular",
         },
     ),
     AnimalProfile(
-        animal="capybara",
+        animal="leopardo_nublado",
         class_name="mammalia",
-        order="rodentia",
-        family="caviidae",
+        order="carnivora",
+        family="felidae",
+        genus="neofelis",
         features={
-            "habitat": "wetlands",
-            "diet": "herbivore",
-            "morphology": "coarse_fur",
-            "reproduction": "viviparous",
-            "activity": "semi_aquatic",
+            "habitat":       "cloud_forest",
+            "patron_pelaje": "cloud_spots",
+            "capacidad":     "climb",
+            "region":        "southeast_asia",
+            "actividad":     "arboreal",
         },
     ),
     AnimalProfile(
-        animal="sloth",
+        animal="ocelote",
         class_name="mammalia",
-        order="pilosa",
-        family="bradypodidae",
+        order="carnivora",
+        family="felidae",
+        genus="leopardus",
         features={
-            "habitat": "forest_canopy",
-            "diet": "herbivore",
-            "morphology": "long_claws",
-            "reproduction": "viviparous",
-            "activity": "arboreal",
-        },
-    ),
-    AnimalProfile(
-        animal="anteater",
-        class_name="mammalia",
-        order="pilosa",
-        family="myrmecophagidae",
-        features={
-            "habitat": "savanna_forest",
-            "diet": "insectivore",
-            "morphology": "elongated_snout",
-            "reproduction": "viviparous",
-            "activity": "terrestrial",
-        },
-    ),
-    AnimalProfile(
-        animal="bat",
-        class_name="mammalia",
-        order="chiroptera",
-        family="phyllostomidae",
-        features={
-            "habitat": "caves",
-            "diet": "insectivore",
-            "morphology": "wings",
-            "reproduction": "viviparous",
-            "activity": "nocturnal",
-        },
-    ),
-    AnimalProfile(
-        animal="dolphin",
-        class_name="mammalia",
-        order="cetacea",
-        family="delphinidae",
-        features={
-            "habitat": "aquatic",
-            "diet": "carnivore",
-            "morphology": "fins",
-            "reproduction": "viviparous",
-            "activity": "aquatic",
-        },
-    ),
-    AnimalProfile(
-        animal="monkey",
-        class_name="mammalia",
-        order="primates",
-        family="cebidae",
-        features={
-            "habitat": "forest",
-            "diet": "omnivore",
-            "morphology": "opposable_thumb",
-            "reproduction": "viviparous",
-            "activity": "arboreal",
+            "habitat":       "tropical_rainforest",
+            "patron_pelaje": "small_spots",
+            "capacidad":     "climb",
+            "region":        "america",
+            "actividad":     "nocturnal",
         },
     ),
 ]
 
 
 def humanize(token: str) -> str:
-    """Convert identifiers like 'forest_canopy' into readable labels."""
-    return token.replace("_", " ").capitalize()
+    """Convert identifiers like 'tropical_rainforest' into readable labels."""
+    replacements = {
+        "jaguar":                   "Jaguar",
+        "leon":                     "León",
+        "tigre":                    "Tigre",
+        "leopardo":                 "Leopardo",
+        "guepardo":                 "Guepardo",
+        "puma":                     "Puma",
+        "leopardo_de_las_nieves":   "Leopardo de las Nieves",
+        "leopardo_nublado":         "Leopardo Nublado",
+        "ocelote":                  "Ocelote",
+        "mammalia":                 "Mammalia",
+        "carnivora":                "Carnivora",
+        "felidae":                  "Felidae",
+        "panthera":                 "Panthera",
+        "acinonyx":                 "Acinonyx",
+        "puma":                     "Puma",
+        "neofelis":                 "Neofelis",
+        "leopardus":                "Leopardus",
+        "tropical_rainforest":      "Selva tropical",
+        "savanna":                  "Sabana",
+        "mountain":                 "Montaña",
+        "temperate_forest":         "Bosque templado",
+        "desert":                   "Desierto",
+        "alpine_tundra":            "Tundra alpina",
+        "mangrove":                 "Manglar",
+        "cloud_forest":             "Bosque nublado",
+        "rosette_spots":            "Manchas en roseta",
+        "vertical_stripes":         "Rayas verticales",
+        "solid_spots":              "Manchas sólidas",
+        "plain_coat":               "Pelaje uniforme",
+        "cloud_spots":              "Manchas en nube",
+        "small_spots":              "Manchas pequeñas",
+        "roar":                     "Rugir",
+        "purr":                     "Ronronear",
+        "climb":                    "Trepar",
+        "swim":                     "Nadar",
+        "extreme_speed":            "Velocidad extrema",
+        "america":                  "América",
+        "africa":                   "África",
+        "asia":                     "Asia",
+        "africa_asia":              "África y Asia",
+        "central_asia":             "Asia Central",
+        "southeast_asia":           "Sudeste Asiático",
+        "nocturnal":                "Nocturno",
+        "diurnal":                  "Diurno",
+        "crepuscular":              "Crepuscular",
+        "arboreal":                 "Arborícola",
+        "habitat":                  "Hábitat",
+        "patron_pelaje":            "Patrón de pelaje",
+        "capacidad":                "Capacidad especial",
+        "region":                   "Región",
+        "actividad":                "Actividad",
+    }
+    return replacements.get(token, token.replace("_", " ").capitalize())

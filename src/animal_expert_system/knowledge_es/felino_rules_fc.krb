@@ -1,0 +1,17 @@
+# ============================================================
+# Reglas de encadenamiento hacia adelante — Felinos grandes
+# ============================================================
+
+perfil_coincidente
+    foreach
+        felinos.perfil_felino($animal, $clase, $orden, $familia, $genero,
+                              $habitat, $patron_pelaje, $capacidad,
+                              $region, $actividad)
+        felinos.caracteristica(habitat,       $habitat)
+        felinos.caracteristica(patron_pelaje, $patron_pelaje)
+        felinos.caracteristica(capacidad,     $capacidad)
+        felinos.caracteristica(region,        $region)
+        felinos.caracteristica(actividad,     $actividad)
+    assert
+        felinos.candidato($animal)
+        felinos.taxonomia($animal, $clase, $orden, $familia, $genero)
