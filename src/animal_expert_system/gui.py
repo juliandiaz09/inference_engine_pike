@@ -1,4 +1,4 @@
-"""Tkinter user interface for the expert system."""
+"""Tkinter user interface for avian expert system."""
 
 from __future__ import annotations
 
@@ -10,24 +10,24 @@ from .domain import (
     FEATURE_LABELS,
     FEATURE_OPTIONS,
     FEATURE_ORDER,
-    MODE_BACKWARD,
-    MODE_FORWARD,
+    RECOGNITION_MODE_BACKWARD,
+    RECOGNITION_MODE_FORWARD,
     MODE_LABELS,
 )
-from .inference import AnimalExpertSystem, format_result
+from .inference import AvianExpertSystem, format_result
 
 
-class AnimalExpertApp(tk.Tk):
+class AvianExpertApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
 
-        self.title("Sistema experto de clasificacion animal")
+        self.title("Sistema experto de identificación de aves")
         self.geometry("1280x820")
         self.minsize(1100, 720)
 
-        self._engine = AnimalExpertSystem()
+        self._engine = AvianExpertSystem()
         self._feature_vars: dict[str, tk.StringVar] = {}
-        self._mode_var = tk.StringVar(value=MODE_FORWARD)
+        self._mode_var = tk.StringVar(value=RECOGNITION_MODE_FORWARD)
         self._example_var = tk.StringVar(value=next(iter(EXAMPLE_PRESETS)))
 
         self._build_style()
@@ -120,14 +120,15 @@ class AnimalExpertApp(tk.Tk):
 
         ttk.Label(
             hero,
-            text="Sistema experto para clasificacion de animales",
+            text="Sistema experto para clasificación de aves",
             style="HeroTitle.TLabel",
         ).grid(row=0, column=0, sticky="w")
         ttk.Label(
             hero,
             text=(
-                "El usuario elige las caracteristicas del animal, selecciona el "
-                "tipo de encadenamiento y observa el proceso de inferencia."
+                "Identifica especies de aves ingresando características observadas. "
+                "Puedes elegir encadenamiento hacia adelante o hacia atrás para ver "
+                "el proceso de inferencia con reglas taxonómicas verificables."
             ),
             style="HeroSub.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(6, 0))
@@ -160,12 +161,12 @@ class AnimalExpertApp(tk.Tk):
         self._build_process_card(process_card)
 
     def _build_left_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Configuracion", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Configuración", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="Selecciona el modo de razonamiento y las caracteristicas del animal.",
+            text="Selecciona el modo de inferencia y las características del ave.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 14))
 
@@ -178,16 +179,16 @@ class AnimalExpertApp(tk.Tk):
         )
         ttk.Radiobutton(
             mode_box,
-            text=MODE_LABELS[MODE_FORWARD],
-            value=MODE_FORWARD,
+            text=MODE_LABELS[RECOGNITION_MODE_FORWARD],
+            value=RECOGNITION_MODE_FORWARD,
             variable=self._mode_var,
             style="Mode.TRadiobutton",
             command=self._refresh_mode_badge,
         ).grid(row=1, column=0, sticky="w", pady=(8, 0))
         ttk.Radiobutton(
             mode_box,
-            text=MODE_LABELS[MODE_BACKWARD],
-            value=MODE_BACKWARD,
+            text=MODE_LABELS[RECOGNITION_MODE_BACKWARD],
+            value=RECOGNITION_MODE_BACKWARD,
             variable=self._mode_var,
             style="Mode.TRadiobutton",
             command=self._refresh_mode_badge,
@@ -262,12 +263,12 @@ class AnimalExpertApp(tk.Tk):
         ).grid(row=0, column=1, sticky="ew")
 
     def _build_result_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Resultado taxonomico", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Resultado de clasificación", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="La salida se actualiza segun el modo de encadenamiento seleccionado.",
+            text="Se muestran las especies identificadas con sus órdenes y familias taxonómicas.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 12))
 
@@ -295,12 +296,12 @@ class AnimalExpertApp(tk.Tk):
         self._result_text.configure(yscrollcommand=scrollbar.set)
 
     def _build_process_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Proceso de inferencia", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Procesamiento y reglas disparadas", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="Aqui puedes ver una representacion del flujo y las etapas ejecutadas.",
+            text="Visualiza el flujo de razonamiento y las reglas específicas que se disparan.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 10))
 
@@ -347,7 +348,7 @@ class AnimalExpertApp(tk.Tk):
         height = 110
         canvas.configure(width=width, height=height)
 
-        if mode == MODE_FORWARD:
+        if mode == RECOGNITION_MODE_FORWARD:
             nodes = [
                 ("Hechos", "#0ea5e9"),
                 ("Reglas", "#1d4ed8"),
@@ -390,9 +391,9 @@ class AnimalExpertApp(tk.Tk):
             canvas.create_line(x1 + 10, y, x2 - 10, y, fill="#64748b", width=3, arrow="last")
 
         caption = (
-            "Flujo de adelante: hechos -> reglas -> conclusion"
-            if mode == MODE_FORWARD
-            else "Flujo de atras: meta -> subobjetivos -> hechos"
+            "Flujo de adelante: hechos -> reglas -> conclusión"
+            if mode == RECOGNITION_MODE_FORWARD
+            else "Flujo de atrás: meta -> subobjetivos -> hechos"
         )
         canvas.create_text(
             width // 2,
@@ -462,6 +463,6 @@ class AnimalExpertApp(tk.Tk):
 
 
 def run_app() -> None:
-    app = AnimalExpertApp()
+    app = AvianExpertApp()
     app._refresh_mode_badge()
     app.mainloop()

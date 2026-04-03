@@ -1,69 +1,80 @@
-"""Domain data used by the GUI and the inference layer."""
+"""Domain configuration for avian expert system."""
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 
 
-FEATURE_ORDER = ("habitat", "diet", "morphology", "reproduction", "activity")
-
-MODE_FORWARD = "adelante"
-MODE_BACKWARD = "atras"
+# Recognition modes for inference
+RECOGNITION_MODE_FORWARD = "adelante"
+RECOGNITION_MODE_BACKWARD = "atras"
 
 MODE_LABELS = {
-    MODE_FORWARD: "Encadenamiento hacia adelante",
-    MODE_BACKWARD: "Encadenamiento hacia atrás",
+    RECOGNITION_MODE_FORWARD: "Encadenamiento hacia adelante",
+    RECOGNITION_MODE_BACKWARD: "Encadenamiento hacia atrás",
 }
 
 MODE_DESCRIPTIONS = {
-    MODE_FORWARD: (
-        "Primero se agregan los hechos al sistema y luego las reglas "
-        "disparan conclusiones."
+    RECOGNITION_MODE_FORWARD: (
+        "Primero se agregan los hechos observables al sistema y luego las "
+        "reglas disparan conclusiones sobre la especie."
     ),
-    MODE_BACKWARD: (
-        "Primero se plantea la conclusión y el sistema intenta demostrarla "
-        "con subobjetivos."
+    RECOGNITION_MODE_BACKWARD: (
+        "Se plantea una hipótesis de especie y el sistema intenta demostrarla "
+        "combinando subobjetivos de características."
     ),
 }
+
+# Feature configuration for bird taxonomy
+FEATURE_ORDER = ("habitat", "diet", "morphology", "size", "activity")
 
 FEATURE_TRANSLATIONS = {
     "habitat": {
         "selva": "rainforest",
         "montana": "mountains",
-        "humedal": "wetlands",
-        "copa_de_arboles": "forest_canopy",
-        "sabanas_y_bosques": "savanna_forest",
-        "cuevas": "caves",
-        "acuatico": "aquatic",
         "bosque": "forest",
+        "ciudad": "urban",
+        "rio": "river",
+        "costa_marina": "coastal",
+        "humedal": "wetland",
+        "sabana": "savanna",
     },
     "diet": {
         "carnivoro": "carnivore",
-        "herbivoro": "herbivore",
         "insectivoro": "insectivore",
+        "herbivoro": "herbivore",
         "omnivoro": "omnivore",
         "piscivoro": "piscivore",
     },
     "morphology": {
-        "pelaje_moteado": "spotted_fur",
-        "pelaje_moteado_pequeno": "small_spotted_fur",
-        "pelaje_uniforme": "plain_fur",
-        "pelaje_grueso": "coarse_fur",
-        "garras_largas": "long_claws",
-        "hocico_alargado": "elongated_snout",
-        "alas": "wings",
-        "aletas": "fins",
-        "pulgar_oponible": "opposable_thumb",
+        "pico_ganchudo": "hooked_beak",
+        "pico_recto": "straight_beak",
+        "pico_curvo": "curved_beak",
+        "pico_corto": "short_beak",
+        "pico_alargado": "elongated_beak",
+        "garras_fuertes": "strong_talons",
+        "ojos_grandes": "large_eyes",
+        "alas_largas": "long_wings",
+        "alas_cortas": "short_wings",
+        "plumaje_oscuro": "dark_plumage",
+        "plumaje_claro": "light_plumage",
+        "plumaje_moteado": "spotted_plumage",
+        "patas_palmeadas": "webbed_feet",
+        "cuello_largo": "long_neck",
     },
-    "reproduction": {
-        "viviparo": "viviparous",
+    "size": {
+        "muy_pequeno": "very_small",
+        "pequeno": "small",
+        "mediano": "medium",
+        "grande": "large",
+        "muy_grande": "very_large",
     },
     "activity": {
+        "diurno": "diurnal",
         "nocturno": "nocturnal",
-        "arboricola": "arboreal",
-        "semiacuatico": "semi_aquatic",
-        "terrestre": "terrestrial",
-        "acuatico": "aquatic",
+        "migratorio": "migratory",
+        "residente": "resident",
+        "cazador": "hunter",
     },
 }
 
@@ -76,7 +87,7 @@ FEATURE_LABELS = {
     "habitat": "Hábitat",
     "diet": "Tipo de alimentación",
     "morphology": "Morfología",
-    "reproduction": "Reproducción",
+    "size": "Tamaño",
     "activity": "Actividad",
 }
 
@@ -84,206 +95,352 @@ FEATURE_OPTIONS = {
     "habitat": [
         "selva",
         "montana",
-        "humedal",
-        "copa_de_arboles",
-        "sabanas_y_bosques",
-        "cuevas",
-        "acuatico",
         "bosque",
+        "ciudad",
+        "rio",
+        "costa_marina",
+        "humedal",
+        "sabana",
     ],
     "diet": [
         "carnivoro",
-        "herbivoro",
         "insectivoro",
+        "herbivoro",
         "omnivoro",
         "piscivoro",
     ],
     "morphology": [
-        "pelaje_moteado",
-        "pelaje_moteado_pequeno",
-        "pelaje_uniforme",
-        "pelaje_grueso",
-        "garras_largas",
-        "hocico_alargado",
-        "alas",
-        "aletas",
-        "pulgar_oponible",
+        "pico_ganchudo",
+        "pico_recto",
+        "pico_curvo",
+        "pico_corto",
+        "pico_alargado",
+        "garras_fuertes",
+        "ojos_grandes",
+        "alas_largas",
+        "alas_cortas",
+        "plumaje_oscuro",
+        "plumaje_claro",
+        "plumaje_moteado",
+        "patas_palmeadas",
+        "cuello_largo",
     ],
-    "reproduction": [
-        "viviparo",
+    "size": [
+        "muy_pequeno",
+        "pequeno",
+        "mediano",
+        "grande",
+        "muy_grande",
     ],
     "activity": [
+        "diurno",
         "nocturno",
-        "arboricola",
-        "semiacuatico",
-        "terrestre",
-        "acuatico",
+        "migratorio",
+        "residente",
+        "cazador",
     ],
 }
 
 EXAMPLE_PRESETS = {
-    "Jaguar": {
-        "habitat": "selva",
+    "Águila Real": {
+        "habitat": "montana",
         "diet": "carnivoro",
-        "morphology": "pelaje_moteado",
-        "reproduction": "viviparo",
+        "morphology": "pico_ganchudo",
+        "size": "muy_grande",
+        "activity": "diurno",
+    },
+    "Búho Real": {
+        "habitat": "bosque",
+        "diet": "carnivoro",
+        "morphology": "ojos_grandes",
+        "size": "grande",
         "activity": "nocturno",
     },
-    "Capibara": {
-        "habitat": "humedal",
-        "diet": "herbivoro",
-        "morphology": "pelaje_grueso",
-        "reproduction": "viviparo",
-        "activity": "semiacuatico",
+    "Golondrina": {
+        "habitat": "ciudad",
+        "diet": "insectivoro",
+        "morphology": "alas_largas",
+        "size": "pequeno",
+        "activity": "migratorio",
     },
-    "Delfin": {
-        "habitat": "acuatico",
-        "diet": "carnivoro",
-        "morphology": "aletas",
-        "reproduction": "viviparo",
-        "activity": "acuatico",
+    "Garza": {
+        "habitat": "humedal",
+        "diet": "piscivoro",
+        "morphology": "cuello_largo",
+        "size": "grande",
+        "activity": "diurno",
     },
 }
 
 
 @dataclass(frozen=True)
-class TaxonomyMatch:
-    animal: str
+class BirdSpecies:
+    """Represents a bird species with taxonomic classification."""
+    
+    common_name_es: str
+    scientific_name: str
+    species_code: str
     class_name: str
     order: str
     family: str
 
 
 @dataclass(frozen=True)
-class AnimalProfile:
-    animal: str
-    class_name: str
-    order: str
-    family: str
+class BirdProfile:
+    """Complete bird profile including taxonomy and features."""
+    
+    bird_id: str
+    species: BirdSpecies
     features: dict[str, str]
 
 
-ANIMAL_PROFILES = [
-    AnimalProfile(
-        animal="jaguar",
-        class_name="mammalia",
-        order="carnivora",
-        family="felidae",
-        features={
-            "habitat": "rainforest",
-            "diet": "carnivore",
-            "morphology": "spotted_fur",
-            "reproduction": "viviparous",
-            "activity": "nocturnal",
-        },
+@dataclass(frozen=True)
+class TaxonomyMatch:
+    """Result from inference engine."""
+    
+    bird_id: str
+    common_name_es: str
+    order: str
+    family: str
+
+
+def humanize_label(token: str) -> str:
+    """Convert identifiers like 'pico_ganchudo' into readable labels."""
+    return token.replace("_", " ").capitalize()
+
+
+# Verified bird species database (Taxonomía verificable)
+BIRD_SPECIES_DATABASE = {
+    "aguila_real": BirdSpecies(
+        common_name_es="Águila Real",
+        scientific_name="Aquila chrysaetos",
+        species_code="GOEA",
+        class_name="Aves",
+        order="Accipitriformes",
+        family="Accipitridae",
     ),
-    AnimalProfile(
-        animal="puma",
-        class_name="mammalia",
-        order="carnivora",
-        family="felidae",
+    "gavilан_cola_roja": BirdSpecies(
+        common_name_es="Gavilán Cola Roja",
+        scientific_name="Buteo jamaicensis",
+        species_code="RTHA",
+        class_name="Aves",
+        order="Accipitriformes",
+        family="Accipitridae",
+    ),
+    "buho_real": BirdSpecies(
+        common_name_es="Búho Real",
+        scientific_name="Bubo virginianus",
+        species_code="GHOW",
+        class_name="Aves",
+        order="Strigiformes",
+        family="Strigidae",
+    ),
+    "lechuza_campanario": BirdSpecies(
+        common_name_es="Lechuza de Campanario",
+        scientific_name="Tyto alba",
+        species_code="BARN",
+        class_name="Aves",
+        order="Strigiformes",
+        family="Tytonidae",
+    ),
+    "cuervo_comun": BirdSpecies(
+        common_name_es="Cuervo Común",
+        scientific_name="Corvus corax",
+        species_code="CORA",
+        class_name="Aves",
+        order="Passeriformes",
+        family="Corvidae",
+    ),
+    "golondrina_azul_blanca": BirdSpecies(
+        common_name_es="Golondrina Azul y Blanca",
+        scientific_name="Hirundo rustica",
+        species_code="BASW",
+        class_name="Aves",
+        order="Passeriformes",
+        family="Hirundinidae",
+    ),
+    "loro_amazonico": BirdSpecies(
+        common_name_es="Loro Amazónico",
+        scientific_name="Amazona viridis",
+        species_code="AMPA",
+        class_name="Aves",
+        order="Psittaciformes",
+        family="Psittacidae",
+    ),
+    "paloma_comun": BirdSpecies(
+        common_name_es="Paloma Común",
+        scientific_name="Columba livia",
+        species_code="ROPI",
+        class_name="Aves",
+        order="Columbiformes",
+        family="Columbidae",
+    ),
+    "gaviota_pico_anillado": BirdSpecies(
+        common_name_es="Gaviota Pico Anillado",
+        scientific_name="Larus delawarensis",
+        species_code="RBGU",
+        class_name="Aves",
+        order="Charadriiformes",
+        family="Laridae",
+    ),
+    "cormoран_grande": BirdSpecies(
+        common_name_es="Cormorán Grande",
+        scientific_name="Phalacrocorax carbo",
+        species_code="GRCO",
+        class_name="Aves",
+        order="Pelecaniformes",
+        family="Phalacrocoracidae",
+    ),
+    "garza_azul": BirdSpecies(
+        common_name_es="Garza Azul",
+        scientific_name="Ardea herodias",
+        species_code="GBHE",
+        class_name="Aves",
+        order="Pelecaniformes",
+        family="Ardeidae",
+    ),
+    "grulla_canadiense": BirdSpecies(
+        common_name_es="Grulla Canadiense",
+        scientific_name="Antigone canadensis",
+        species_code="SACR",
+        class_name="Aves",
+        order="Gruiformes",
+        family="Gruidae",
+    ),
+}
+
+# Profiles with verified taxonomic characteristics
+BIRD_PROFILES = [
+    BirdProfile(
+        bird_id="aguila_real",
+        species=BIRD_SPECIES_DATABASE["aguila_real"],
         features={
             "habitat": "mountains",
             "diet": "carnivore",
-            "morphology": "plain_fur",
-            "reproduction": "viviparous",
-            "activity": "nocturnal",
+            "morphology": "hooked_beak",
+            "size": "very_large",
+            "activity": "diurnal",
         },
     ),
-    AnimalProfile(
-        animal="ocelot",
-        class_name="mammalia",
-        order="carnivora",
-        family="felidae",
-        features={
-            "habitat": "rainforest",
-            "diet": "carnivore",
-            "morphology": "small_spotted_fur",
-            "reproduction": "viviparous",
-            "activity": "arboreal",
-        },
-    ),
-    AnimalProfile(
-        animal="capybara",
-        class_name="mammalia",
-        order="rodentia",
-        family="caviidae",
-        features={
-            "habitat": "wetlands",
-            "diet": "herbivore",
-            "morphology": "coarse_fur",
-            "reproduction": "viviparous",
-            "activity": "semi_aquatic",
-        },
-    ),
-    AnimalProfile(
-        animal="sloth",
-        class_name="mammalia",
-        order="pilosa",
-        family="bradypodidae",
-        features={
-            "habitat": "forest_canopy",
-            "diet": "herbivore",
-            "morphology": "long_claws",
-            "reproduction": "viviparous",
-            "activity": "arboreal",
-        },
-    ),
-    AnimalProfile(
-        animal="anteater",
-        class_name="mammalia",
-        order="pilosa",
-        family="myrmecophagidae",
-        features={
-            "habitat": "savanna_forest",
-            "diet": "insectivore",
-            "morphology": "elongated_snout",
-            "reproduction": "viviparous",
-            "activity": "terrestrial",
-        },
-    ),
-    AnimalProfile(
-        animal="bat",
-        class_name="mammalia",
-        order="chiroptera",
-        family="phyllostomidae",
-        features={
-            "habitat": "caves",
-            "diet": "insectivore",
-            "morphology": "wings",
-            "reproduction": "viviparous",
-            "activity": "nocturnal",
-        },
-    ),
-    AnimalProfile(
-        animal="dolphin",
-        class_name="mammalia",
-        order="cetacea",
-        family="delphinidae",
-        features={
-            "habitat": "aquatic",
-            "diet": "carnivore",
-            "morphology": "fins",
-            "reproduction": "viviparous",
-            "activity": "aquatic",
-        },
-    ),
-    AnimalProfile(
-        animal="monkey",
-        class_name="mammalia",
-        order="primates",
-        family="cebidae",
+    BirdProfile(
+        bird_id="gavilан_cola_roja",
+        species=BIRD_SPECIES_DATABASE["gavilан_cola_roja"],
         features={
             "habitat": "forest",
+            "diet": "carnivore",
+            "morphology": "hooked_beak",
+            "size": "large",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="buho_real",
+        species=BIRD_SPECIES_DATABASE["buho_real"],
+        features={
+            "habitat": "forest",
+            "diet": "carnivore",
+            "morphology": "large_eyes",
+            "size": "large",
+            "activity": "nocturnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="lechuza_campanario",
+        species=BIRD_SPECIES_DATABASE["lechuza_campanario"],
+        features={
+            "habitat": "urban",
+            "diet": "carnivore",
+            "morphology": "short_beak",
+            "size": "medium",
+            "activity": "nocturnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="cuervo_comun",
+        species=BIRD_SPECIES_DATABASE["cuervo_comun"],
+        features={
+            "habitat": "urban",
             "diet": "omnivore",
-            "morphology": "opposable_thumb",
-            "reproduction": "viviparous",
-            "activity": "arboreal",
+            "morphology": "dark_plumage",
+            "size": "large",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="golondrina_azul_blanca",
+        species=BIRD_SPECIES_DATABASE["golondrina_azul_blanca"],
+        features={
+            "habitat": "urban",
+            "diet": "insectivore",
+            "morphology": "long_wings",
+            "size": "small",
+            "activity": "migratory",
+        },
+    ),
+    BirdProfile(
+        bird_id="loro_amazonico",
+        species=BIRD_SPECIES_DATABASE["loro_amazonico"],
+        features={
+            "habitat": "rainforest",
+            "diet": "herbivore",
+            "morphology": "curved_beak",
+            "size": "large",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="paloma_comun",
+        species=BIRD_SPECIES_DATABASE["paloma_comun"],
+        features={
+            "habitat": "urban",
+            "diet": "herbivore",
+            "morphology": "straight_beak",
+            "size": "medium",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="gaviota_pico_anillado",
+        species=BIRD_SPECIES_DATABASE["gaviota_pico_anillado"],
+        features={
+            "habitat": "coastal",
+            "diet": "omnivore",
+            "morphology": "webbed_feet",
+            "size": "medium",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="cormoран_grande",
+        species=BIRD_SPECIES_DATABASE["cormoран_grande"],
+        features={
+            "habitat": "coastal",
+            "diet": "piscivore",
+            "morphology": "elongated_beak",
+            "size": "large",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="garza_azul",
+        species=BIRD_SPECIES_DATABASE["garza_azul"],
+        features={
+            "habitat": "wetland",
+            "diet": "piscivore",
+            "morphology": "long_neck",
+            "size": "large",
+            "activity": "diurnal",
+        },
+    ),
+    BirdProfile(
+        bird_id="grulla_canadiense",
+        species=BIRD_SPECIES_DATABASE["grulla_canadiense"],
+        features={
+            "habitat": "wetland",
+            "diet": "omnivore",
+            "morphology": "long_neck",
+            "size": "very_large",
+            "activity": "migratory",
         },
     ),
 ]
-
-
-def humanize(token: str) -> str:
-    """Convert identifiers like 'forest_canopy' into readable labels."""
-    return token.replace("_", " ").capitalize()

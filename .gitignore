@@ -3,3 +3,5 @@ __pycache__/
 .venv310/
 src/animal_expert_system/knowledge/compiled_krb/
 pyke-master
+KNOWLEDGE_BASE.md
+README_COMPLETE.md

@@ -1,15 +1,96 @@
-# Reglas de encadenamiento hacia adelante.
+# Forward chaining rules for bird identification.
+# These rules seek exact matches of characteristics with stored bird profiles.
 
-perfil_coincidente
+# Rule 1: Compare observed characteristics with stored bird profiles
+identify_diurnal_raptor_species
     foreach
-        animales.perfil_animal($animal, $clase, $orden, $familia,
-                               $habitat, $dieta, $morfologia, $reproduccion,
-                               $actividad)
-        animales.caracteristica(habitat, $habitat)
-        animales.caracteristica(diet, $dieta)
-        animales.caracteristica(morphology, $morfologia)
-        animales.caracteristica(reproduction, $reproduccion)
-        animales.caracteristica(activity, $actividad)
+        animals.bird_profile($bird_id, $scientific_name, $class_name, $order, $family,
+                           $habitat, $diet, $morphology, $size, $activity)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
     assert
-        animales.candidato($animal)
-        animales.taxonomia($animal, $clase, $orden, $familia)
+        animals.candidate($bird_id)
+        animals.taxonomy($bird_id, $order, $family)
+
+# Rule 2: Classify diurnal raptors (Accipitridae - Accipitriformes)
+classify_accipiter_diurnal
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Accipitriformes, Accipitridae,
+                           $_, carnivore, hooked_beak, $_, diurnal)
+    assert
+        animals.classification(order, Accipitriformes)
+        animals.classification(family, Accipitridae)
+
+# Rule 3: Classify nocturnal raptors (Strigiformes)
+classify_strigiforme_nocturnal
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Strigiformes, $family,
+                           $_, carnivore, $_, $_, nocturnal)
+    assert
+        animals.classification(order, Strigiformes)
+        animals.classification(family, $family)
+
+# Rule 4: Classify passeriformes (Perching birds)
+classify_passeriforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Passeriformes, $family,
+                           $_, $_, $_, $_, diurnal)
+    assert
+        animals.classification(order, Passeriformes)
+        animals.classification(family, $family)
+
+# Rule 5: Classify psittacines (parrots)
+classify_psittaciforme_parrot
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Psittaciformes, Psittacidae,
+                           rainforest, herbivore, curved_beak, large, diurnal)
+    assert
+        animals.classification(order, Psittaciformes)
+        animals.classification(family, Psittacidae)
+
+# Rule 6: Classify columbiformes (doves)
+classify_columbiforme_pigeon
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Columbiformes, Columbidae,
+                           urban, herbivore, straight_beak, medium, diurnal)
+    assert
+        animals.classification(order, Columbiformes)
+        animals.classification(family, Columbidae)
+
+# Rule 7: Classify charadriiformes (gulls)
+classify_charadriforme_gull
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Charadriiformes, Laridae,
+                           coastal, omnivore, webbed_feet, medium, diurnal)
+    assert
+        animals.classification(order, Charadriiformes)
+        animals.classification(family, Laridae)
+
+# Rule 8: Classify pelecaniformes
+classify_pelecaniforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Pelecaniformes, $family,
+                           $_, $_, $_, $_, diurnal)
+    assert
+        animals.classification(order, Pelecaniformes)
+        animals.classification(family, $family)
+
+# Rule 9: Classify gruiformes (cranes)
+classify_gruiforme_crane
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Gruiformes, Gruidae,
+                           wetland, omnivore, long_neck, very_large, migratory)
+    assert
+        animals.classification(order, Gruiformes)
+        animals.classification(family, Gruidae)

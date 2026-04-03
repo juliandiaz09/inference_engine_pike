@@ -1,25 +1,23 @@
-# Rule base for animal classification.
+# Main rule base for bird classification.
 
 profile_match
     foreach
-        animals.animal_profile($animal, $class_name, $order, $family,
-                               $habitat, $diet, $morphology, $reproduction,
-                               $activity)
-        animals.feature(habitat, $habitat)
-        animals.feature(diet, $diet)
-        animals.feature(morphology, $morphology)
-        animals.feature(reproduction, $reproduction)
-        animals.feature(activity, $activity)
+        animals.bird_profile($bird_id, $scientific_name, $class_name, $order, $family,
+                           $habitat, $diet, $morphology, $size, $activity)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
     assert
-        animals.candidate($animal)
-        animals.taxonomy($animal, $class_name, $order, $family)
+        animals.candidate($bird_id)
+        animals.taxonomy($bird_id, $order, $family)
 
 taxonomy_from_candidate
     foreach
-        animals.candidate($animal)
-        animals.animal_profile($animal, $class_name, $order, $family,
-                               $_, $_, $_, $_, $_)
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $_, $_, $_, $_)
     assert
-        animals.classification(class, $class_name)
+        animals.classification(class, Aves)
         animals.classification(order, $order)
         animals.classification(family, $family)
