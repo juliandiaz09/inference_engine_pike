@@ -1,0 +1,15 @@
+# Reglas de encadenamiento hacia adelante.
+
+perfil_coincidente
+    foreach
+        animals.perfil_animal($animal, $clase, $orden, $familia,
+                               $habitat, $dieta, $morfologia, $reproduccion,
+                               $actividad)
+        animals.caracteristica(habitat, $habitat)
+        animals.caracteristica(diet, $dieta)
+        animals.caracteristica(morphology, $morfologia)
+        animals.caracteristica(reproduction, $reproduccion)
+        animals.caracteristica(activity, $actividad)
+    assert
+        animals.candidato($animal)
+        animals.taxonomia($animal, $clase, $orden, $familia)

@@ -1,4 +1,4 @@
-"""Inference layer para el sistema experto de felinos grandes."""
+"""Inference layer for the animal expert system."""
 
 from __future__ import annotations
 
@@ -33,14 +33,14 @@ class InferenceResult:
 
 
 class AnimalExpertSystem:
-    """Motor de inferencia para clasificación de felinos grandes."""
+    """Inference wrapper used by the GUI."""
 
     def __init__(self) -> None:
         self._engine = knowledge_engine.engine(str(KNOWLEDGE_DIR))
 
     def infer(self, features: dict[str, str], mode: str) -> InferenceResult:
         if mode not in (MODE_FORWARD, MODE_BACKWARD):
-            raise ValueError("Modo de inferencia no válido.")
+            raise ValueError("Modo de inferencia no valido.")
 
         normalized = self._normalize_features(features)
         english_features = self._to_english_features(normalized)
@@ -48,10 +48,6 @@ class AnimalExpertSystem:
         if mode == MODE_FORWARD:
             return self._infer_forward(normalized, english_features)
         return self._infer_backward(normalized, english_features)
-
-    # ------------------------------------------------------------------
-    # Encadenamiento hacia adelante
-    # ------------------------------------------------------------------
 
     def _infer_forward(
         self,
@@ -63,28 +59,63 @@ class AnimalExpertSystem:
 
         for feature_name in FEATURE_ORDER:
             self._engine.add_case_specific_fact(
-                "felinos",
-                "caracteristica",
+                "animals",
+                "feature",
                 (feature_name, english_features[feature_name]),
             )
             trace.append(
                 f"Se agrega el hecho: {humanize(feature_name)} = "
-                f"{humanize(english_features[feature_name])}."
+                f"{humanize(normalized[feature_name])}."
             )
 
-        trace.append("Se activa la base de reglas hacia adelante (felino_rules).")
-        self._engine.activate("felino_rules")
+        trace.append("Se activa la base de reglas hacia adelante.")
+        self._engine.activate("animal_rules")
         matches = self._collect_forward_matches()
         trace.extend(self._forward_trace(matches))
 
         return InferenceResult(MODE_FORWARD, matches, normalized, trace)
 
+    def _infer_backward(
+        self,
+        normalized: dict[str, str],
+        english_features: dict[str, str],
+    ) -> InferenceResult:
+        trace = self._initial_trace(MODE_BACKWARD)
+        trace.append(
+            "Se formula la meta: clasificar el animal a partir de sus caracteristicas."
+        )
+
+        matches = []
+        for profile in ANIMAL_PROFILES:
+            trace.append(f"Se prueba el perfil de {humanize(profile.animal)}.")
+            if self._profile_matches(profile, english_features):
+                match = TaxonomyMatch(
+                    animal=profile.animal,
+                    class_name=profile.class_name,
+                    order=profile.order,
+                    family=profile.family,
+                )
+                matches.append(match)
+                trace.append(
+                    "La meta queda demostrada con el perfil de "
+                    f"{humanize(profile.animal)}."
+                )
+                break
+            trace.append(
+                f"El perfil de {humanize(profile.animal)} no coincide con los hechos."
+            )
+
+        if not matches:
+            trace.append("La meta no pudo demostrarse con los hechos disponibles.")
+
+        return InferenceResult(MODE_BACKWARD, matches, normalized, trace)
+
     def _collect_forward_matches(self) -> list[TaxonomyMatch]:
         matches: list[TaxonomyMatch] = []
-        seen: set[tuple] = set()
+        seen: set[tuple[str, str, str, str]] = set()
 
         with self._engine.prove_goal(
-            "felinos.taxonomia($animal, $class_name, $order, $family, $genus)"
+            "animals.taxonomy($animal, $class_name, $order, $family)"
         ) as gen:
             for vars, _plan in gen:
                 key = (
@@ -92,7 +123,6 @@ class AnimalExpertSystem:
                     vars["class_name"],
                     vars["order"],
                     vars["family"],
-                    vars["genus"],
                 )
                 if key not in seen:
                     seen.add(key)
@@ -102,97 +132,40 @@ class AnimalExpertSystem:
                             class_name=vars["class_name"],
                             order=vars["order"],
                             family=vars["family"],
-                            genus=vars["genus"],
                         )
                     )
         return matches
 
     def _forward_trace(self, matches: list[TaxonomyMatch]) -> list[str]:
         trace = [
-            "Regla 1 (perfil_coincidente): si todas las características del "
-            "felino coinciden con un perfil, se aserta un candidato.",
-            "Regla 2 (taxonomia_desde_candidato): desde el candidato se "
-            "deriva la clasificación taxonómica completa.",
+            "Regla 1: si el perfil coincide, se aserta un candidato.",
+            "Regla 2: desde el candidato, se obtiene la taxonomia final.",
         ]
         if matches:
             for match in matches:
                 trace.append(
-                    f"✔ Conclusión: {humanize(match.animal)} → "
-                    f"Clase {humanize(match.class_name)}, "
-                    f"Orden {humanize(match.order)}, "
-                    f"Familia {humanize(match.family)}, "
-                    f"Género {humanize(match.genus)}."
+                    "Conclusion obtenida: "
+                    f"{humanize(match.animal)} -> {humanize(match.class_name)}, "
+                    f"{humanize(match.order)}, {humanize(match.family)}."
                 )
         else:
             trace.append(
-                "✘ No se generaron candidatos: ningún perfil almacenado "
-                "coincide exactamente con las características ingresadas."
+                "No se generaron candidatos porque no hubo coincidencia exacta."
             )
         return trace
-
-    # ------------------------------------------------------------------
-    # Encadenamiento hacia atrás
-    # ------------------------------------------------------------------
-
-    def _infer_backward(
-        self,
-        normalized: dict[str, str],
-        english_features: dict[str, str],
-    ) -> InferenceResult:
-        trace = self._initial_trace(MODE_BACKWARD)
-        trace.append(
-            "Meta: clasificar el felino determinando clase, orden, familia y género."
-        )
-
-        matches = []
-        for profile in ANIMAL_PROFILES:
-            trace.append(
-                f"Se prueba la hipótesis: ¿es este felino un {humanize(profile.animal)}?"
-            )
-            if self._profile_matches(profile, english_features):
-                match = TaxonomyMatch(
-                    animal=profile.animal,
-                    class_name=profile.class_name,
-                    order=profile.order,
-                    family=profile.family,
-                    genus=profile.genus,
-                )
-                matches.append(match)
-                trace.append(
-                    f"✔ Hipótesis confirmada: {humanize(profile.animal)} "
-                    "satisface todas las subcaracterísticas requeridas."
-                )
-                break
-            trace.append(
-                f"✘ Hipótesis descartada: el perfil de "
-                f"{humanize(profile.animal)} no coincide."
-            )
-
-        if not matches:
-            trace.append(
-                "La meta no pudo demostrarse: ningún felino en la base de "
-                "conocimiento satisface el conjunto de hechos ingresados."
-            )
-
-        return InferenceResult(MODE_BACKWARD, matches, normalized, trace)
-
-    # ------------------------------------------------------------------
-    # Utilidades
-    # ------------------------------------------------------------------
 
     def _initial_trace(self, mode: str) -> list[str]:
         return [
             f"Modo seleccionado: {MODE_LABELS[mode]}.",
             MODE_DESCRIPTIONS[mode],
-            "Base de conocimiento: 9 perfiles de felinos grandes (Felidae).",
-            "Características evaluadas: hábitat, patrón de pelaje, capacidad "
-            "especial, región geográfica y actividad.",
+            "Hechos preparados para el razonamiento.",
         ]
 
-    def _profile_matches(self, profile, english_features: dict[str, str]) -> bool:
+    def _profile_matches(
+        self, profile, english_features: dict[str, str]
+    ) -> bool:
         return all(
-            profile.features.get(key) == english_features[key]
-            for key in FEATURE_ORDER
+            profile.features[key] == english_features[key] for key in FEATURE_ORDER
         )
 
     @staticmethod
@@ -201,10 +174,7 @@ class AnimalExpertSystem:
         for feature_name in FEATURE_ORDER:
             value = features.get(feature_name)
             if not value:
-                raise ValueError(
-                    f"Característica faltante: {feature_name}. "
-                    "Por favor selecciona todas las opciones."
-                )
+                raise ValueError(f"Missing feature: {feature_name}")
             normalized[feature_name] = value
         return normalized
 
@@ -217,31 +187,27 @@ class AnimalExpertSystem:
 
 
 def format_result(result: InferenceResult) -> str:
-    """Resumen legible para la interfaz gráfica."""
+    """Render a user-friendly summary for the GUI."""
 
     lines = [f"Modo: {MODE_LABELS[result.mode]}", ""]
-    lines.append("Características ingresadas:")
+    lines.append("Caracteristicas ingresadas:")
     for key in FEATURE_ORDER:
-        spanish_val = result.features[key]
-        en_val = FEATURE_TRANSLATIONS[key][spanish_val]
-        lines.append(f"  • {humanize(key)}: {humanize(en_val)}")
+        lines.append(f"- {humanize(key)}: {humanize(result.features[key])}")
     lines.append("")
 
     if not result.matches:
-        lines.append("⚠ No se encontró coincidencia en la base de conocimiento.")
         lines.append(
-            "Verifica las características seleccionadas o amplía la base de reglas."
+            "No se encontro una coincidencia exacta en la base de conocimiento."
         )
+        lines.append("Revisa las opciones seleccionadas o amplia el conjunto de reglas.")
         return "\n".join(lines)
 
-    lines.append("Resultado de la inferencia:")
-    lines.append("─" * 38)
+    lines.append("Inferencia realizada:")
     for match in result.matches:
-        lines.append(f"  Felino identificado : {humanize(match.animal)}")
-        lines.append(f"  Clase               : {humanize(match.class_name)}")
-        lines.append(f"  Orden               : {humanize(match.order)}")
-        lines.append(f"  Familia             : {humanize(match.family)}")
-        lines.append(f"  Género              : {humanize(match.genus)}")
+        lines.append(f"- Animal candidato: {humanize(match.animal)}")
+        lines.append(f"  Clase: {humanize(match.class_name)}")
+        lines.append(f"  Orden: {humanize(match.order)}")
+        lines.append(f"  Familia: {humanize(match.family)}")
         lines.append("")
 
     return "\n".join(lines).rstrip()

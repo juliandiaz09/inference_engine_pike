@@ -1,17 +1,14 @@
-# ============================================================
-# Base de hechos — Felinos grandes (Familia Felidae)
-# Sistema experto de clasificación taxonómica
-# ============================================================
-# Formato:
-# perfil_felino(animal, clase, orden, familia, genero,
-#               habitat, patron_pelaje, capacidad, region, actividad)
+# Hechos universales de la base de conocimiento.
 
-perfil_felino(jaguar,                 mammalia, carnivora, felidae, panthera,  tropical_rainforest, rosette_spots,   swim,          america,       nocturnal)
-perfil_felino(leon,                   mammalia, carnivora, felidae, panthera,  savanna,             plain_coat,      roar,          africa,        crepuscular)
-perfil_felino(tigre,                  mammalia, carnivora, felidae, panthera,  tropical_rainforest, vertical_stripes, swim,         asia,          nocturnal)
-perfil_felino(leopardo,               mammalia, carnivora, felidae, panthera,  temperate_forest,    rosette_spots,   climb,         africa_asia,   nocturnal)
-perfil_felino(guepardo,               mammalia, carnivora, felidae, acinonyx,  savanna,             solid_spots,     extreme_speed, africa,        diurnal)
-perfil_felino(puma,                   mammalia, carnivora, felidae, puma,      mountain,            plain_coat,      purr,          america,       crepuscular)
-perfil_felino(leopardo_de_las_nieves, mammalia, carnivora, felidae, panthera,  alpine_tundra,       rosette_spots,   purr,          central_asia,  crepuscular)
-perfil_felino(leopardo_nublado,       mammalia, carnivora, felidae, neofelis,  cloud_forest,        cloud_spots,     climb,         southeast_asia, arboreal)
-perfil_felino(ocelote,                mammalia, carnivora, felidae, leopardus, tropical_rainforest, small_spots,     climb,         america,       nocturnal)
+perfil_animal(jaguar, mamifero, carnivora, felidae, selva, carnivoro, pelaje_moteado, viviparo, nocturno)
+perfil_animal(puma, mamifero, carnivora, felidae, montana, carnivoro, pelaje_uniforme, viviparo, nocturno)
+perfil_animal(ocelote, mamifero, carnivora, felidae, selva, carnivoro, pelaje_moteado_pequeno, viviparo, arboricola)
+
+perfil_animal(capibara, mamifero, roedores, caviidae, humedal, herbivoro, pelaje_grueso, viviparo, semiacuatico)
+perfil_animal(perezoso, mamifero, pilosa, bradypodidae, copa_de_arboles, herbivoro, garras_largas, viviparo, arboricola)
+perfil_animal(oso_hormiguero, mamifero, pilosa, myrmecophagidae, sabanas_y_bosques, insectivoro, hocico_alargado, viviparo, terrestre)
+
+perfil_animal(murcielago, mamifero, chiroptera, phyllostomidae, cuevas, insectivoro, alas, viviparo, nocturno)
+perfil_animal(delfin, mamifero, cetacea, delphinidae, acuatico, carnivoro, aletas, viviparo, acuatico)
+perfil_animal(mono, mamifero, primates, cebidae, bosque, omnivoro, pulgar_oponible, viviparo, arboricola)
+
