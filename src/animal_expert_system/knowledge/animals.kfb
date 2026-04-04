@@ -21,3 +21,23 @@ bird_profile(cormoran_grande, "Phalacrocorax carbo", Aves, Pelecaniformes, Phala
 bird_profile(garza_azul, "Ardea herodias", Aves, Pelecaniformes, Ardeidae, wetland, piscivore, long_neck, large, diurnal)
 
 bird_profile(grulla_canadiense, "Antigone canadensis", Aves, Gruiformes, Gruidae, wetland, omnivore, long_neck, very_large, migratory)
+
+bird_profile(martin_pescador, "Megaceryle torquata", Aves, Coraciiformes, Cerylidae, river, piscivore, elongated_beak, small, resident)
+
+bird_profile(pato_real, "Anas platyrhynchos", Aves, Anseriformes, Anatidae, river, omnivore, webbed_feet, medium, resident)
+
+bird_profile(aguila_pescadora, "Pandion haliaetus", Aves, Accipitriformes, Pandionidae, coastal, piscivore, strong_talons, large, migratory)
+
+bird_profile(flamingo_americano, "Phoenicopterus ruber", Aves, Phoenicopteriformes, Phoenicopteridae, wetland, omnivore, long_neck, large, resident)
+
+bird_profile(buitre_negro, "Coragyps atratus", Aves, Cathartiformes, Cathartidae, savanna, carnivore, dark_plumage, large, diurnal)
+
+bird_profile(tucan_pico_iris, "Ramphastos sulfuratus", Aves, Piciformes, Ramphastidae, rainforest, omnivore, elongated_beak, medium, resident)
+
+bird_profile(aguila_arpia, "Harpia harpyja", Aves, Accipitriformes, Accipitridae, rainforest, carnivore, strong_talons, very_large, resident)
+
+bird_profile(ciguena_blanca, "Ciconia ciconia", Aves, Ciconiiformes, Ciconiidae, savanna, omnivore, long_neck, very_large, migratory)
+
+bird_profile(cotorra_monje, "Myiopsitta monachus", Aves, Psittaciformes, Psittacidae, urban, herbivore, curved_beak, small, resident)
+
+bird_profile(aguila_culebrera, "Circaetus gallicus", Aves, Accipitriformes, Accipitridae, savanna, carnivore, hooked_beak, large, diurnal)
