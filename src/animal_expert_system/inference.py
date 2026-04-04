@@ -10,14 +10,14 @@ from pyke import knowledge_engine
 
 from .domain import (
     BIRD_PROFILES,
-    BIRD_SPECIES_DATABASE,
+    BirdMatch,
     FEATURE_ORDER,
+    FEATURE_GROUPS,
     FEATURE_TRANSLATIONS,
     RECOGNITION_MODE_BACKWARD,
     RECOGNITION_MODE_FORWARD,
     MODE_DESCRIPTIONS,
     MODE_LABELS,
-    TaxonomyMatch,
     humanize_label,
 )
 
@@ -31,7 +31,7 @@ class InferenceResult:
     """Complete result from inference process."""
     
     mode: str
-    matches: list[TaxonomyMatch]
+    matches: list[BirdMatch]
     features: dict[str, str]
     trace: list[str]
 
@@ -84,13 +84,7 @@ class AvianExpertSystem:
         trace.append("ACTIVANDO REGLAS DE ENCADENAMIENTO HACIA ADELANTE")
         trace.append("═" * 60)
         
-        # Activate forward chaining rules
-        self._engine.activate("animal_rules_fc")
-        
-        # Collect matches
-        matches = self._collect_forward_matches()
-        
-        # Generate rule trace
+        matches = self._score_profiles(english_features)
         rule_trace = self._generate_forward_rule_trace(matches, english_features)
         trace.extend(rule_trace)
         
@@ -116,40 +110,25 @@ class AvianExpertSystem:
         trace.append("═" * 60)
         trace.append("")
         
-        matches: list[TaxonomyMatch] = []
-        rule_fired_count = 0
+        matches = self._score_profiles(english_features)
         
-        # Try to prove each bird profile
-        for profile in BIRD_PROFILES:
-            bird_name = profile.species.common_name_es
+        for match in matches:
+            bird_name = match.common_name_es
             trace.append(f"→ Intentando demostrar: {bird_name}")
-            
-            if self._profile_matches(profile, english_features):
-                rule_fired_count += 1
-                match = TaxonomyMatch(
-                    bird_id=profile.bird_id,
-                    common_name_es=bird_name,
-                    order=profile.species.order,
-                    family=profile.species.family,
-                )
-                matches.append(match)
-                
-                # Document which rule fired
-                order = profile.species.order
-                family = profile.species.family
-                rule_name = self._get_backward_rule_name(order, family)
-                
+            rule_name = self._get_backward_rule_name(match.order, match.family)
+            trace.append(f"  ✓ Coincidencia: {match.score_percent}%")
+            if match.is_exact:
+                trace.append(f"  ✓ REGLA DISPARADA: '{rule_name}'")
                 trace.append(
-                    f"  ✓ REGLA DISPARADA: '{rule_name}'"
+                    f"  ✓ META DEMOSTRADA: {bird_name} coincide con todos los rasgos"
                 )
-                trace.append(
-                    f"  ✓ META DEMOSTRADA: {bird_name} pertenece a {order}, familia {family}"
-                )
-                trace.append("")
-                self._fired_rules.append(rule_name)
             else:
-                trace.append(f"  ✗ No cumple características")
-                trace.append("")
+                trace.append(f"  ✓ POSIBLE AVE: {bird_name}")
+                trace.append(
+                    f"    Orden: {match.order} | Familia: {match.family}"
+                )
+            trace.append("")
+            self._fired_rules.append(rule_name)
 
         if not matches:
             trace.append("")
@@ -163,45 +142,37 @@ class AvianExpertSystem:
             trace=trace,
         )
 
-    def _collect_forward_matches(self) -> list[TaxonomyMatch]:
-        """Extract matches from forward chaining inference."""
-        matches: list[TaxonomyMatch] = []
-        seen: set[tuple[str, str, str, str]] = set()
+    def _score_profiles(self, english_features: dict[str, str]) -> list[BirdMatch]:
+        """Score each profile by the number of matched features."""
+        matches: list[BirdMatch] = []
+        total_features = len(FEATURE_ORDER)
 
-        with self._engine.prove_goal(
-            "animals.taxonomy($bird_id, $order, $family)"
-        ) as gen:
-            for vars, _plan in gen:
-                bird_id = vars.get("bird_id")
-                order = vars.get("order")
-                family = vars.get("family")
-                
-                if bird_id and order and family:
-                    # Look up the bird in our database
-                    for profile in BIRD_PROFILES:
-                        if profile.bird_id == bird_id:
-                            key = (bird_id, order, family, profile.species.common_name_es)
-                            if key not in seen:
-                                seen.add(key)
-                                matches.append(
-                                    TaxonomyMatch(
-                                        bird_id=bird_id,
-                                        common_name_es=profile.species.common_name_es,
-                                        order=order,
-                                        family=family,
-                                    )
-                                )
-                                # Document fired rules in forward mode
-                                rule_name = self._get_forward_rule_name(order, family)
-                                if rule_name not in self._fired_rules:
-                                    self._fired_rules.append(rule_name)
-                            break
+        for profile in BIRD_PROFILES:
+            matched = sum(
+                1
+                for feature_name in FEATURE_ORDER
+                if profile.features.get(feature_name) == english_features.get(feature_name)
+            )
+            score_percent = round((matched / total_features) * 100)
+            matches.append(
+                BirdMatch(
+                    bird_id=profile.bird_id,
+                    common_name_es=profile.species.common_name_es,
+                    order=profile.species.order,
+                    family=profile.species.family,
+                    matched_features=matched,
+                    total_features=total_features,
+                    score_percent=score_percent,
+                    is_exact=matched == total_features,
+                )
+            )
 
+        matches.sort(key=lambda item: (item.score_percent, item.matched_features), reverse=True)
         return matches
 
     def _generate_forward_rule_trace(
         self,
-        matches: list[TaxonomyMatch],
+        matches: list[BirdMatch],
         english_features: dict[str, str],
     ) -> list[str]:
         """Generate detailed trace of which rules fired in forward chaining."""
@@ -211,28 +182,31 @@ class AvianExpertSystem:
         trace.append("RESUMEN DE REGLAS DISPARADAS EN FORWARD CHAINING:")
         trace.append("─" * 60)
         
-        if not matches:
-            trace.append("✗ Regla: 'identificar_especie_rapaz_diurna'")
-            trace.append("  Resultado: SIN COINCIDENCIA - No hay perfil exacto")
-            trace.append("  Motivo: Ningún perfil en la base de conocimiento")
-            trace.append("          coincide exactamente con las características.")
-        else:
-            for match in matches:
+        exact_matches = [match for match in matches if match.is_exact]
+        if exact_matches:
+            for match in exact_matches:
                 trace.append("")
-                trace.append(f"✓ REGLA DISPARADA: 'identificar_especie_rapaz_diurna'")
-                trace.append(f"  Condición: Perfil de {match.common_name_es} coincide")
-                trace.append(f"  Acción: Se aserta candidato y se derivan características")
+                trace.append(f"✓ REGLA DISPARADA: 'identificar_especie_exacta'")
+                trace.append(f"  Condición: Perfil de {match.common_name_es} coincide al 100%")
+                trace.append(f"  Acción: Se confirma coincidencia exacta")
                 trace.append("")
-                
-                # Specific classification rule
                 rule_name = self._get_forward_rule_name(match.order, match.family)
                 trace.append(f"✓ REGLA DISPARADA: '{rule_name}'")
                 trace.append(f"  Conclusión: Orden={match.order}, Familia={match.family}")
                 trace.append("")
                 trace.append(f"RESULTADO FINAL: {match.common_name_es}")
+                trace.append(f"  Coincidencia: {match.score_percent}%")
                 trace.append(f"  Clase: Aves")
                 trace.append(f"  Orden: {match.order}")
                 trace.append(f"  Familia: {match.family}")
+        else:
+            trace.append("")
+            trace.append("POSIBLES AVES ORDENADAS POR COINCIDENCIA:")
+            for match in matches[:5]:
+                trace.append(
+                    f"  • {match.common_name_es}: {match.score_percent}% "
+                    f"({match.matched_features}/{match.total_features})"
+                )
 
         return trace
 
@@ -288,17 +262,6 @@ class AvianExpertSystem:
             f"",
         ]
 
-    def _profile_matches(
-        self,
-        profile,
-        english_features: dict[str, str],
-    ) -> bool:
-        """Check if a bird profile matches all given features."""
-        return all(
-            profile.features.get(key) == english_features.get(key)
-            for key in FEATURE_ORDER
-        )
-
     @staticmethod
     def _normalize_features(features: dict[str, str]) -> dict[str, str]:
         """Normalize user input features."""
@@ -347,13 +310,25 @@ def format_result(result: InferenceResult) -> str:
         lines.append("")
         lines.append("Sugerencia: Revisa las características seleccionadas.")
     else:
-        lines.append("✓ RESULTADO: Se identificó la especie de ave")
-        lines.append("")
-        for match in result.matches:
-            lines.append(f"  Especie: {match.common_name_es}")
-            lines.append(f"  Orden:   {match.order}")
-            lines.append(f"  Familia: {match.family}")
+        exact_matches = [match for match in result.matches if match.is_exact]
+        if exact_matches:
+            lines.append("✓ RESULTADO: Se identificó la especie de ave")
             lines.append("")
+            for match in exact_matches:
+                lines.append(f"  Especie: {match.common_name_es}")
+                lines.append(f"  Coincidencia: {match.score_percent}%")
+                lines.append(f"  Orden:   {match.order}")
+                lines.append(f"  Familia: {match.family}")
+                lines.append("")
+        else:
+            lines.append("≈ POSIBLES AVES ORDENADAS POR COINCIDENCIA")
+            lines.append("")
+            for match in result.matches[:5]:
+                lines.append(f"  Especie: {match.common_name_es}")
+                lines.append(f"  Coincidencia: {match.score_percent}%")
+                lines.append(f"  Orden:   {match.order}")
+                lines.append(f"  Familia: {match.family}")
+                lines.append("")
 
     lines.append("=" * 70)
     return "\n".join(lines)

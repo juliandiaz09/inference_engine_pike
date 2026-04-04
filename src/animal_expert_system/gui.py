@@ -1,3 +1,4 @@
+# -*- coding: cp1252 -*-
 """Tkinter user interface for avian expert system."""
 
 from __future__ import annotations
@@ -9,10 +10,14 @@ from .domain import (
     EXAMPLE_PRESETS,
     FEATURE_LABELS,
     FEATURE_OPTIONS,
+    FEATURE_GROUPS,
     FEATURE_ORDER,
     RECOGNITION_MODE_BACKWARD,
     RECOGNITION_MODE_FORWARD,
     MODE_LABELS,
+    FEATURE_DISPLAY_OPTIONS,
+    FEATURE_DISPLAY_TO_VALUE,
+    humanize_label,
 )
 from .inference import AvianExpertSystem, format_result
 
@@ -161,12 +166,12 @@ class AvianExpertApp(tk.Tk):
         self._build_process_card(process_card)
 
     def _build_left_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Configuraci贸n", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Configuraci髇", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="Selecciona el modo de inferencia y las caracter铆sticas del ave.",
+            text="Selecciona el modo de inferencia y las caracter韘ticas del ave.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 14))
 
@@ -220,55 +225,63 @@ class AvianExpertApp(tk.Tk):
         features_box.columnconfigure(0, weight=1)
         features_box.columnconfigure(1, weight=1)
 
-        ttk.Label(features_box, text="Caracteristicas", style="SectionLabel.TLabel").grid(
+        ttk.Label(features_box, text="Caracter韘ticas", style="SectionLabel.TLabel").grid(
             row=0, column=0, columnspan=2, sticky="w", pady=(0, 10)
         )
 
-        for index, feature_name in enumerate(FEATURE_ORDER):
-            col = index % 2
-            row = 1 + index // 2
-            field = ttk.Frame(features_box, style="Card.TFrame")
-            field.grid(row=row, column=col, sticky="ew", padx=(0, 10 if col == 0 else 0), pady=(0, 10))
-            field.columnconfigure(0, weight=1)
+        row_index = 1
+        for group_name, group_features in FEATURE_GROUPS.items():
+            group_card = ttk.Frame(features_box, style="Card.TFrame")
+            group_card.grid(row=row_index, column=0, columnspan=2, sticky="ew", pady=(0, 12))
+            group_card.columnconfigure(0, weight=1)
+            ttk.Label(
+                group_card,
+                text=humanize_label(group_name),
+                style="SectionLabel.TLabel",
+            ).grid(row=0, column=0, sticky="w", pady=(0, 8))
 
-            ttk.Label(field, text=FEATURE_LABELS[feature_name], style="CardText.TLabel").grid(
-                row=0, column=0, sticky="w"
-            )
-            var = tk.StringVar()
-            combo = ttk.Combobox(
-                field,
-                textvariable=var,
-                state="readonly",
-                values=FEATURE_OPTIONS[feature_name],
-            )
-            combo.grid(row=1, column=0, sticky="ew", pady=(4, 0))
-            self._feature_vars[feature_name] = var
+            inner = ttk.Frame(group_card, style="Card.TFrame")
+            inner.grid(row=1, column=0, sticky="ew")
+            inner.columnconfigure(0, weight=1)
+            inner.columnconfigure(1, weight=1)
+
+            for index, feature_name in enumerate(group_features):
+                col = index % 2
+                field = ttk.Frame(inner, style="Card.TFrame")
+                field.grid(row=0, column=col, sticky="ew", padx=(0, 10 if col == 0 else 0))
+                field.columnconfigure(0, weight=1)
+
+                ttk.Label(
+                    field,
+                    text=FEATURE_LABELS.get(feature_name, humanize_label(feature_name)),
+                    style="CardText.TLabel",
+                ).grid(row=0, column=0, sticky="w")
+                var = tk.StringVar()
+                combo = ttk.Combobox(
+                    field,
+                    textvariable=var,
+                    state="readonly",
+                    values=FEATURE_DISPLAY_OPTIONS[feature_name],
+                )
+                combo.grid(row=1, column=0, sticky="ew", pady=(4, 0))
+                self._feature_vars[feature_name] = var
+
+            row_index += 1
 
         action_box = ttk.Frame(parent, style="Card.TFrame")
         action_box.grid(row=5, column=0, sticky="ew", pady=(10, 0))
         action_box.columnconfigure(0, weight=1)
         action_box.columnconfigure(1, weight=1)
 
-        ttk.Button(
-            action_box,
-            text="Inferir",
-            style="Action.TButton",
-            command=self._infer,
-        ).grid(row=0, column=0, sticky="ew", padx=(0, 8))
-        ttk.Button(
-            action_box,
-            text="Limpiar",
-            style="Action.TButton",
-            command=self._clear,
-        ).grid(row=0, column=1, sticky="ew")
-
+        ttk.Button(action_box, text="Inferir", style="Action.TButton", command=self._infer).grid(row=0, column=0, sticky="ew", padx=(0, 8))
+        ttk.Button(action_box, text="Limpiar", style="Action.TButton", command=self._clear).grid(row=0, column=1, sticky="ew")
     def _build_result_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Resultado de clasificaci贸n", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Resultado de clasificaci髇", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="Se muestran las especies identificadas con sus 贸rdenes y familias taxon贸micas.",
+            text="Se muestran las especies identificadas con sus 髍denes y familias taxon髆icas.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 12))
 
@@ -301,7 +314,7 @@ class AvianExpertApp(tk.Tk):
         )
         ttk.Label(
             parent,
-            text="Visualiza el flujo de razonamiento y las reglas espec铆ficas que se disparan.",
+            text="Visualiza el flujo de razonamiento y las reglas espec韋icas que se disparan.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 10))
 
@@ -326,7 +339,7 @@ class AvianExpertApp(tk.Tk):
             height=7,
         )
         self._trace_tree.heading("#0", text="Etapa")
-        self._trace_tree.heading("detalle", text="Descripcion")
+        self._trace_tree.heading("detalle", text="Descripci髇")
         self._trace_tree.column("#0", width=220, anchor="w")
         self._trace_tree.column("detalle", width=620, anchor="w")
         self._trace_tree.grid(row=0, column=0, sticky="nsew")
@@ -352,7 +365,7 @@ class AvianExpertApp(tk.Tk):
             nodes = [
                 ("Hechos", "#0ea5e9"),
                 ("Reglas", "#1d4ed8"),
-                ("Conclusion", "#0f172a"),
+                ("Conclusi贸n", "#0f172a"),
             ]
             arrows = [(0, 1), (1, 2)]
         else:
@@ -391,9 +404,9 @@ class AvianExpertApp(tk.Tk):
             canvas.create_line(x1 + 10, y, x2 - 10, y, fill="#64748b", width=3, arrow="last")
 
         caption = (
-            "Flujo de adelante: hechos -> reglas -> conclusi贸n"
+            "Flujo hacia adelante: hechos -> reglas -> conclusi贸n"
             if mode == RECOGNITION_MODE_FORWARD
-            else "Flujo de atr谩s: meta -> subobjetivos -> hechos"
+            else "Flujo hacia atr谩s: meta -> subobjetivos -> hechos"
         )
         canvas.create_text(
             width // 2,
@@ -408,8 +421,14 @@ class AvianExpertApp(tk.Tk):
 
     def _load_example(self, preset_name: str) -> None:
         preset = EXAMPLE_PRESETS[preset_name]
-        for feature_name, value in preset.items():
-            self._feature_vars[feature_name].set(value)
+        for feature_name in FEATURE_ORDER:
+            value = preset.get(feature_name, FEATURE_OPTIONS[feature_name][0])
+            self._feature_vars[feature_name].set(
+                FEATURE_DISPLAY_TO_VALUE[feature_name].get(
+                    humanize_label(value),
+                    humanize_label(value),
+                )
+            )
 
         self._refresh_mode_badge()
         self._write_result(
@@ -420,7 +439,7 @@ class AvianExpertApp(tk.Tk):
                 ("Preparacion", f"Se cargo el ejemplo {preset_name}."),
                 (
                     "Sugerencia",
-                    "Selecciona un modo de encadenamiento y presiona Inferir.",
+                    "Selecciona un modo de inferencia y presiona Inferir.",
                 ),
             ]
         )
@@ -428,14 +447,17 @@ class AvianExpertApp(tk.Tk):
     def _clear(self) -> None:
         for var in self._feature_vars.values():
             var.set("")
-        self._write_result("Formulario limpio. Selecciona nuevas caracteristicas.")
-        self._populate_trace([("Estado", "Sin inferencia ejecutada todavia.")])
+        self._write_result("Formulario limpio. Selecciona nuevas caracter韘ticas.")
+        self._populate_trace([("Estado", "Sin inferencia ejecutada todav韆.")])
         self._refresh_mode_badge()
 
     def _infer(self) -> None:
         try:
             features = {
-                feature_name: var.get()
+                feature_name: FEATURE_DISPLAY_TO_VALUE[feature_name].get(
+                    var.get(),
+                    var.get().replace(" ", "_").lower(),
+                )
                 for feature_name, var in self._feature_vars.items()
             }
             result = self._engine.infer(features, self._mode_var.get())
@@ -466,3 +488,8 @@ def run_app() -> None:
     app = AvianExpertApp()
     app._refresh_mode_badge()
     app.mainloop()
+
+
+
+
+
