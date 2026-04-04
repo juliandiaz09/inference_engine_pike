@@ -116,7 +116,7 @@ class AvianExpertSystem:
             bird_name = match.common_name_es
             trace.append(f"→ Intentando demostrar: {bird_name}")
             rule_name = self._get_backward_rule_name(match.order, match.family)
-            trace.append(f"  ✓ Coincidencia: {match.score_percent}%")
+            trace.append(f"  ✓ Nivel de confianza: {match.score_percent}%")
             if match.is_exact:
                 trace.append(f"  ✓ REGLA DISPARADA: '{rule_name}'")
                 trace.append(
@@ -195,7 +195,7 @@ class AvianExpertSystem:
                 trace.append(f"  Conclusión: Orden={match.order}, Familia={match.family}")
                 trace.append("")
                 trace.append(f"RESULTADO FINAL: {match.common_name_es}")
-                trace.append(f"  Coincidencia: {match.score_percent}%")
+                trace.append(f"  Nivel de confianza: {match.score_percent}%")
                 trace.append(f"  Clase: Aves")
                 trace.append(f"  Orden: {match.order}")
                 trace.append(f"  Familia: {match.family}")
@@ -316,7 +316,7 @@ def format_result(result: InferenceResult) -> str:
             lines.append("")
             for match in exact_matches:
                 lines.append(f"  Especie: {match.common_name_es}")
-                lines.append(f"  Coincidencia: {match.score_percent}%")
+                lines.append(f"  Nivel de confianza: {match.score_percent}%")
                 lines.append(f"  Orden:   {match.order}")
                 lines.append(f"  Familia: {match.family}")
                 lines.append("")
@@ -325,7 +325,7 @@ def format_result(result: InferenceResult) -> str:
             lines.append("")
             for match in result.matches[:5]:
                 lines.append(f"  Especie: {match.common_name_es}")
-                lines.append(f"  Coincidencia: {match.score_percent}%")
+                lines.append(f"  Nivel de confianza: {match.score_percent}%")
                 lines.append(f"  Orden:   {match.order}")
                 lines.append(f"  Familia: {match.family}")
                 lines.append("")

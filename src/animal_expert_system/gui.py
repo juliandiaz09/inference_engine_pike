@@ -22,6 +22,17 @@ from .domain import (
 from .inference import AvianExpertSystem, format_result
 
 
+FEATURE_GROUP_LABELS = {
+    "ecological": "Ecologicas",
+    "morphological": "Morfologicas",
+    "behavioral": "Conductuales",
+}
+
+FEATURE_LABEL_OVERRIDES = {
+    "behavior": "Comportamiento",
+}
+
+
 class AvianExpertApp(tk.Tk):
     def __init__(self) -> None:
         super().__init__()
@@ -282,7 +293,7 @@ class AvianExpertApp(tk.Tk):
             group_card.columnconfigure(0, weight=1)
             ttk.Label(
                 group_card,
-                text=humanize_label(group_name),
+                text=FEATURE_GROUP_LABELS.get(group_name, humanize_label(group_name)),
                 style="SectionLabel.TLabel",
             ).grid(row=0, column=0, sticky="w", pady=(0, 8))
 
@@ -299,7 +310,9 @@ class AvianExpertApp(tk.Tk):
 
                 ttk.Label(
                     field,
-                    text=FEATURE_LABELS.get(feature_name, humanize_label(feature_name)),
+                    text=FEATURE_LABEL_OVERRIDES.get(
+                        feature_name, FEATURE_LABELS.get(feature_name, humanize_label(feature_name))
+                    ),
                     style="CardText.TLabel",
                 ).grid(row=0, column=0, sticky="w")
                 var = tk.StringVar()
@@ -696,8 +709,8 @@ class AvianExpertApp(tk.Tk):
                 self._result_text.insert(tk.END, "  " + label + ": ", "field_label")
                 self._result_text.insert(tk.END, value.strip() + "\n", "species_name")
 
-            # Coincidencia con color según porcentaje
-            elif stripped.startswith("Coincidencia:"):
+            # Nivel de confianza con color según porcentaje
+            elif stripped.startswith("Nivel de confianza:"):
                 label, _, value = stripped.partition(":")
                 pct_str = value.strip().replace("%", "")
                 try:
