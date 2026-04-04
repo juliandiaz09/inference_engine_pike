@@ -430,12 +430,8 @@ class AvianExpertApp(tk.Tk):
         preset = EXAMPLE_PRESETS[preset_name]
         for feature_name in FEATURE_ORDER:
             value = preset.get(feature_name, FEATURE_OPTIONS[feature_name][0])
-            self._feature_vars[feature_name].set(
-                FEATURE_DISPLAY_TO_VALUE[feature_name].get(
-                    humanize_label(value),
-                    humanize_label(value),
-                )
-            )
+            # Mostrar la versión humanizada directamente
+            self._feature_vars[feature_name].set(humanize_label(value))
 
         self._refresh_mode_badge()
         self._write_result(
