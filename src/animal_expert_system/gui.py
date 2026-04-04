@@ -113,16 +113,47 @@ class AvianExpertApp(tk.Tk):
         )
 
     def _build_layout(self) -> None:
-        root = ttk.Frame(self, style="App.TFrame", padding=18)
-        root.pack(fill="both", expand=True)
+        # Frame principal que contendrá todo con scroll
+        main_container = ttk.Frame(self, style="App.TFrame")
+        main_container.grid(row=0, column=0, sticky="nsew")
+        self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        main_container.grid_rowconfigure(0, weight=1)
+        main_container.grid_columnconfigure(0, weight=1)
+        
+        # Canvas para scroll
+        canvas = tk.Canvas(main_container, bg="#0f172a", highlightthickness=0)
+        canvas.grid(row=0, column=0, sticky="nsew")
+        
+        # Scrollbar
+        scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
+        scrollbar.grid(row=0, column=1, sticky="ns")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Frame que contendrá todo el contenido (dentro del canvas)
+        root = ttk.Frame(canvas, style="App.TFrame", padding=18)
+        canvas.create_window((0, 0), window=root, anchor="nw", width=canvas.winfo_width())
+        
+        # Configurar el frame interior
         root.columnconfigure(0, weight=0)
         root.columnconfigure(1, weight=1)
         root.rowconfigure(1, weight=1)
-
+        
+        # Actualizar región de scroll cuando cambie el tamaño
+        def on_frame_configure(event):
+            canvas.configure(scrollregion=canvas.bbox("all"))
+        
+        def on_canvas_configure(event):
+            canvas.itemconfig(1, width=event.width)
+        
+        root.bind("<Configure>", on_frame_configure)
+        canvas.bind("<Configure>", on_canvas_configure)
+        
+        # Resto del layout igual pero usando root como contenedor principal
         hero = ttk.Frame(root, style="Hero.TFrame", padding=(24, 20))
         hero.grid(row=0, column=0, columnspan=2, sticky="nsew", pady=(0, 16))
         hero.columnconfigure(0, weight=1)
-
+        
         ttk.Label(
             hero,
             text="Sistema experto para clasificación de aves",
@@ -137,30 +168,30 @@ class AvianExpertApp(tk.Tk):
             ),
             style="HeroSub.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(6, 0))
-
+        
         self._mode_badge = ttk.Label(hero, style="AccentText.TLabel", padding=(14, 6))
         self._mode_badge.grid(row=0, column=1, rowspan=2, sticky="e")
-
+        
         left_card = ttk.Frame(root, style="Card.TFrame", padding=18)
         left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 16))
         left_card.columnconfigure(0, weight=1)
-
+        
         right_area = ttk.Frame(root, style="App.TFrame")
         right_area.grid(row=1, column=1, sticky="nsew")
         right_area.rowconfigure(0, weight=3)
         right_area.rowconfigure(1, weight=2)
         right_area.columnconfigure(0, weight=1)
-
+        
         result_card = ttk.Frame(right_area, style="Card.TFrame", padding=18)
         result_card.grid(row=0, column=0, sticky="nsew", pady=(0, 16))
         result_card.rowconfigure(1, weight=1)
         result_card.columnconfigure(0, weight=1)
-
+        
         process_card = ttk.Frame(right_area, style="CardAlt.TFrame", padding=18)
         process_card.grid(row=1, column=0, sticky="nsew")
         process_card.rowconfigure(2, weight=1)
         process_card.columnconfigure(0, weight=1)
-
+        
         self._build_left_card(left_card)
         self._build_result_card(result_card)
         self._build_process_card(process_card)
