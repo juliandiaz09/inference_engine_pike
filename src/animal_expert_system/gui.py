@@ -484,7 +484,7 @@ class AvianExpertApp(tk.Tk):
         )
         self._trace_tree.heading("#0", text="Etapa")
         self._trace_tree.heading("detalle", text="Descripción")
-        self._trace_tree.column("#0", width=220, anchor="w")
+        self._trace_tree.column("#0", width=100, anchor="w")
         self._trace_tree.column("detalle", width=620, anchor="w")
         self._trace_tree.grid(row=0, column=0, sticky="nsew")
 
