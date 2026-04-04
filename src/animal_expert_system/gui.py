@@ -112,48 +112,63 @@ class AvianExpertApp(tk.Tk):
             background=[("active", "#dbeafe"), ("!active", "#e2e8f0")],
         )
 
+        # Colores alternos para el treeview de trazas
+        style.configure(
+            "Trace.Treeview",
+            background="#eef2ff",
+            fieldbackground="#eef2ff",
+            foreground="#1e293b",
+            font=("Segoe UI", 10),
+            rowheight=26,
+        )
+        style.configure(
+            "Trace.Treeview.Heading",
+            background="#1d4ed8",
+            foreground="#ffffff",
+            font=("Segoe UI", 10, "bold"),
+            relief="flat",
+        )
+        style.map(
+            "Trace.Treeview",
+            background=[("selected", "#bfdbfe")],
+            foreground=[("selected", "#0f172a")],
+        )
+
     def _build_layout(self) -> None:
-        # Frame principal que contendrá todo con scroll
         main_container = ttk.Frame(self, style="App.TFrame")
         main_container.grid(row=0, column=0, sticky="nsew")
         self.grid_rowconfigure(0, weight=1)
         self.grid_columnconfigure(0, weight=1)
         main_container.grid_rowconfigure(0, weight=1)
         main_container.grid_columnconfigure(0, weight=1)
-        
-        # Canvas para scroll
+
         canvas = tk.Canvas(main_container, bg="#0f172a", highlightthickness=0)
         canvas.grid(row=0, column=0, sticky="nsew")
-        
-        # Scrollbar
+
         scrollbar = ttk.Scrollbar(main_container, orient="vertical", command=canvas.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         canvas.configure(yscrollcommand=scrollbar.set)
-        
-        # Frame que contendrá todo el contenido (dentro del canvas)
+
         root = ttk.Frame(canvas, style="App.TFrame", padding=18)
         canvas.create_window((0, 0), window=root, anchor="nw", width=canvas.winfo_width())
-        
-        # Configurar el frame interior
+
         root.columnconfigure(0, weight=0)
         root.columnconfigure(1, weight=1)
         root.rowconfigure(1, weight=1)
-        
-        # Actualizar región de scroll cuando cambie el tamaño
+
         def on_frame_configure(event):
             canvas.configure(scrollregion=canvas.bbox("all"))
-        
+
         def on_canvas_configure(event):
             canvas.itemconfig(1, width=event.width)
-        
+
         root.bind("<Configure>", on_frame_configure)
         canvas.bind("<Configure>", on_canvas_configure)
-        
-        # Resto del layout igual pero usando root como contenedor principal
+
         hero = ttk.Frame(root, style="Hero.TFrame", padding=(24, 20))
         hero.grid(row=0, column=0, columnspan=2, sticky="nsew", pady=(0, 16))
         hero.columnconfigure(0, weight=1)
-        
+
         ttk.Label(
             hero,
             text="Sistema experto para clasificación de aves",
@@ -168,30 +183,30 @@ class AvianExpertApp(tk.Tk):
             ),
             style="HeroSub.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(6, 0))
-        
+
         self._mode_badge = ttk.Label(hero, style="AccentText.TLabel", padding=(14, 6))
         self._mode_badge.grid(row=0, column=1, rowspan=2, sticky="e")
-        
+
         left_card = ttk.Frame(root, style="Card.TFrame", padding=18)
         left_card.grid(row=1, column=0, sticky="nsew", padx=(0, 16))
         left_card.columnconfigure(0, weight=1)
-        
+
         right_area = ttk.Frame(root, style="App.TFrame")
         right_area.grid(row=1, column=1, sticky="nsew")
         right_area.rowconfigure(0, weight=3)
         right_area.rowconfigure(1, weight=2)
         right_area.columnconfigure(0, weight=1)
-        
+
         result_card = ttk.Frame(right_area, style="Card.TFrame", padding=18)
         result_card.grid(row=0, column=0, sticky="nsew", pady=(0, 16))
         result_card.rowconfigure(1, weight=1)
         result_card.columnconfigure(0, weight=1)
-        
+
         process_card = ttk.Frame(right_area, style="CardAlt.TFrame", padding=18)
         process_card.grid(row=1, column=0, sticky="nsew")
         process_card.rowconfigure(2, weight=1)
         process_card.columnconfigure(0, weight=1)
-        
+
         self._build_left_card(left_card)
         self._build_result_card(result_card)
         self._build_process_card(process_card)
@@ -332,9 +347,9 @@ class AvianExpertApp(tk.Tk):
             bd=0,
             padx=16,
             pady=16,
-            background="#ffffff",
-            foreground="#0f172a",
-            insertbackground="#0f172a",
+            background="#0f172a",
+            foreground="#e2e8f0",
+            insertbackground="#e2e8f0",
             font=("Consolas", 11),
             relief="flat",
         )
@@ -343,6 +358,98 @@ class AvianExpertApp(tk.Tk):
         scrollbar = ttk.Scrollbar(text_frame, orient="vertical", command=self._result_text.yview)
         scrollbar.grid(row=0, column=1, sticky="ns")
         self._result_text.configure(yscrollcommand=scrollbar.set)
+
+        # ── Tags de formato para el panel de resultados ──────────────────────
+        self._result_text.tag_configure(
+            "title",
+            foreground="#38bdf8",
+            font=("Segoe UI", 13, "bold"),
+            spacing1=6,
+            spacing3=4,
+        )
+        self._result_text.tag_configure(
+            "separator",
+            foreground="#334155",
+            font=("Consolas", 10),
+            spacing1=2,
+            spacing3=2,
+        )
+        self._result_text.tag_configure(
+            "mode_label",
+            foreground="#94a3b8",
+            font=("Segoe UI", 10),
+        )
+        self._result_text.tag_configure(
+            "section_header",
+            foreground="#fbbf24",
+            font=("Segoe UI", 11, "bold"),
+            spacing1=8,
+            spacing3=4,
+        )
+        self._result_text.tag_configure(
+            "feature_key",
+            foreground="#7dd3fc",
+            font=("Consolas", 11),
+        )
+        self._result_text.tag_configure(
+            "feature_value",
+            foreground="#e2e8f0",
+            font=("Consolas", 11),
+        )
+        self._result_text.tag_configure(
+            "success",
+            foreground="#4ade80",
+            font=("Segoe UI", 11, "bold"),
+            spacing1=6,
+        )
+        self._result_text.tag_configure(
+            "warning",
+            foreground="#fbbf24",
+            font=("Segoe UI", 11, "bold"),
+            spacing1=6,
+        )
+        self._result_text.tag_configure(
+            "error",
+            foreground="#f87171",
+            font=("Segoe UI", 11, "bold"),
+            spacing1=6,
+        )
+        self._result_text.tag_configure(
+            "species_name",
+            foreground="#a78bfa",
+            font=("Segoe UI", 12, "bold"),
+            spacing1=4,
+        )
+        self._result_text.tag_configure(
+            "field_label",
+            foreground="#94a3b8",
+            font=("Consolas", 11),
+        )
+        self._result_text.tag_configure(
+            "field_value",
+            foreground="#e2e8f0",
+            font=("Consolas", 11, "bold"),
+        )
+        self._result_text.tag_configure(
+            "score_high",
+            foreground="#4ade80",
+            font=("Consolas", 11, "bold"),
+        )
+        self._result_text.tag_configure(
+            "score_med",
+            foreground="#fbbf24",
+            font=("Consolas", 11, "bold"),
+        )
+        self._result_text.tag_configure(
+            "score_low",
+            foreground="#f87171",
+            font=("Consolas", 11, "bold"),
+        )
+        self._result_text.tag_configure(
+            "body",
+            foreground="#cbd5e1",
+            font=("Consolas", 11),
+        )
 
     def _build_process_card(self, parent: ttk.Frame) -> None:
         ttk.Label(parent, text="Procesamiento y reglas disparadas", style="CardTitle.TLabel").grid(
@@ -373,12 +480,21 @@ class AvianExpertApp(tk.Tk):
             columns=("detalle",),
             show="tree headings",
             height=7,
+            style="Trace.Treeview",
         )
         self._trace_tree.heading("#0", text="Etapa")
         self._trace_tree.heading("detalle", text="Descripción")
         self._trace_tree.column("#0", width=220, anchor="w")
         self._trace_tree.column("detalle", width=620, anchor="w")
         self._trace_tree.grid(row=0, column=0, sticky="nsew")
+
+        # Tags para filas alternas en el treeview
+        self._trace_tree.tag_configure("odd", background="#dbeafe", foreground="#1e293b")
+        self._trace_tree.tag_configure("even", background="#eef2ff", foreground="#1e293b")
+        self._trace_tree.tag_configure("fact", background="#dcfce7", foreground="#166534")
+        self._trace_tree.tag_configure("rule", background="#fef9c3", foreground="#92400e")
+        self._trace_tree.tag_configure("result", background="#ede9fe", foreground="#4c1d95")
+        self._trace_tree.tag_configure("error_row", background="#fee2e2", foreground="#991b1b")
 
         trace_scroll = ttk.Scrollbar(
             trace_frame, orient="vertical", command=self._trace_tree.yview
@@ -461,7 +577,6 @@ class AvianExpertApp(tk.Tk):
         preset = EXAMPLE_PRESETS[preset_name]
         for feature_name in FEATURE_ORDER:
             value = preset.get(feature_name, FEATURE_OPTIONS[feature_name][0])
-            # Mostrar la versión humanizada directamente
             self._feature_vars[feature_name].set(humanize_label(value))
 
         self._refresh_mode_badge()
@@ -508,14 +623,110 @@ class AvianExpertApp(tk.Tk):
     def _populate_trace(self, items: list[tuple[str, str]]) -> None:
         for row in self._trace_tree.get_children():
             self._trace_tree.delete(row)
-        for title, detail in items:
-            self._trace_tree.insert("", "end", text=title, values=(detail,))
+
+        for idx, (title, detail) in enumerate(items):
+            # Elegir tag según contenido de la descripción
+            text_lower = detail.lower()
+            if any(k in text_lower for k in ("hecho registrado", "agregando", "hecho")):
+                row_tag = "fact"
+            elif any(k in text_lower for k in ("regla disparada", "clasificar", "rule")):
+                row_tag = "rule"
+            elif any(k in text_lower for k in ("resultado", "especie", "conclusión", "meta demostrada")):
+                row_tag = "result"
+            elif any(k in text_lower for k in ("error", "no se pudo", "no coincide")):
+                row_tag = "error_row"
+            else:
+                row_tag = "odd" if idx % 2 == 0 else "even"
+
+            self._trace_tree.insert("", "end", text=title, values=(detail,), tags=(row_tag,))
 
     def _write_result(self, text: str) -> None:
+        """Write formatted result text with syntax highlighting."""
         self._result_text.configure(state="normal")
         self._result_text.delete("1.0", tk.END)
-        self._result_text.insert("1.0", text)
-        self._result_text.configure(state="normal")
+
+        for line in text.splitlines():
+            stripped = line.rstrip()
+
+            # Separadores de igual o guión
+            if set(stripped.replace(" ", "")) <= {"=", "═"} and len(stripped) > 4:
+                self._result_text.insert(tk.END, stripped + "\n", "separator")
+
+            elif set(stripped.replace(" ", "")) <= {"-", "─"} and len(stripped) > 4:
+                self._result_text.insert(tk.END, stripped + "\n", "separator")
+
+            # Cabeceras principales (todo mayúsculas, sin prefijo especial)
+            elif stripped.isupper() and len(stripped) > 3 and not stripped.startswith("  "):
+                self._result_text.insert(tk.END, stripped + "\n", "title")
+
+            # Línea de modo
+            elif stripped.startswith("Modo:"):
+                self._result_text.insert(tk.END, stripped + "\n", "mode_label")
+
+            # Características ingresadas (encabezado)
+            elif stripped.startswith("Características ingresadas"):
+                self._result_text.insert(tk.END, stripped + "\n", "section_header")
+
+            # Ítem de característica:  "  • Clave: Valor"
+            elif stripped.startswith("•"):
+                parts = stripped[1:].split(":", 1)
+                if len(parts) == 2:
+                    self._result_text.insert(tk.END, "  • ", "separator")
+                    self._result_text.insert(tk.END, parts[0].strip(), "feature_key")
+                    self._result_text.insert(tk.END, ": ", "separator")
+                    self._result_text.insert(tk.END, parts[1].strip() + "\n", "feature_value")
+                else:
+                    self._result_text.insert(tk.END, stripped + "\n", "body")
+
+            # Resultado exitoso
+            elif stripped.startswith("✓"):
+                self._result_text.insert(tk.END, stripped + "\n", "success")
+
+            # Advertencia / posibles aves
+            elif stripped.startswith("≈"):
+                self._result_text.insert(tk.END, stripped + "\n", "warning")
+
+            # Error / no encontrado
+            elif stripped.startswith("✗"):
+                self._result_text.insert(tk.END, stripped + "\n", "error")
+
+            # Nombre de especie
+            elif stripped.startswith("Especie:"):
+                label, _, value = stripped.partition(":")
+                self._result_text.insert(tk.END, "  " + label + ": ", "field_label")
+                self._result_text.insert(tk.END, value.strip() + "\n", "species_name")
+
+            # Coincidencia con color según porcentaje
+            elif stripped.startswith("Coincidencia:"):
+                label, _, value = stripped.partition(":")
+                pct_str = value.strip().replace("%", "")
+                try:
+                    pct = int(pct_str)
+                except ValueError:
+                    pct = 0
+                score_tag = (
+                    "score_high" if pct >= 80
+                    else "score_med" if pct >= 50
+                    else "score_low"
+                )
+                self._result_text.insert(tk.END, "  " + label + ": ", "field_label")
+                self._result_text.insert(tk.END, value.strip() + "\n", score_tag)
+
+            # Orden / Familia / Clase
+            elif stripped.startswith(("Orden:", "Familia:", "Clase:")):
+                label, _, value = stripped.partition(":")
+                self._result_text.insert(tk.END, "  " + label + ": ", "field_label")
+                self._result_text.insert(tk.END, value.strip() + "\n", "field_value")
+
+            # Línea vacía
+            elif stripped == "":
+                self._result_text.insert(tk.END, "\n")
+
+            # Todo lo demás
+            else:
+                self._result_text.insert(tk.END, stripped + "\n", "body")
+
+        self._result_text.configure(state="disabled")
 
 
 def run_app() -> None:
