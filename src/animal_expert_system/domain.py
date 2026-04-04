@@ -218,7 +218,12 @@ class BirdSpecies:
     class_name: str
     order: str
     family: str
-
+    genus: str
+    wingspan_cm: str        # e.g. "180–220 cm"
+    weight_g: str           # e.g. "3000–6500 g"
+    lifespan_years: str     # e.g. "hasta 30 años"
+    conservation_status: str  # IUCN: LC, NT, VU, EN, CR
+    fun_fact: str
 
 @dataclass(frozen=True)
 class BirdProfile:
@@ -262,6 +267,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Accipitriformes",
         family="Accipitridae",
+        genus="Aquila",
+        wingspan_cm="180–220 cm",
+        weight_g="3000–6500 g",
+        lifespan_years="hasta 32 años",
+        conservation_status="LC",
+        fun_fact="Puede alcanzar velocidades de 240 km/h en picada.",
     ),
     "gavilan_cola_roja": BirdSpecies(
         common_name_es="Gavilán Cola Roja",
@@ -270,6 +281,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Accipitriformes",
         family="Accipitridae",
+        genus="Buteo",
+        wingspan_cm="105–141 cm",
+        weight_g="690–1460 g",
+        lifespan_years="hasta 25 años",
+        conservation_status="LC",
+        fun_fact="Su grito es el sonido de 'águila' más usado en películas y televisión.",
     ),
     "buho_real": BirdSpecies(
         common_name_es="Búho Real",
@@ -278,6 +295,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Strigiformes",
         family="Strigidae",
+        genus="Bubo",
+        wingspan_cm="91–153 cm",
+        weight_g="910–2500 g",
+        lifespan_years="hasta 28 años",
+        conservation_status="LC",
+        fun_fact="Puede girar la cabeza 270°. Es uno de los pocos predadores del zorrillo.",
     ),
     "lechuza_campanario": BirdSpecies(
         common_name_es="Lechuza de Campanario",
@@ -286,6 +309,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Strigiformes",
         family="Tytonidae",
+        genus="Tyto",
+        wingspan_cm="80–95 cm",
+        weight_g="224–710 g",
+        lifespan_years="hasta 20 años",
+        conservation_status="LC",
+        fun_fact="Su disco facial actúa como una antena parabólica para localizar presas en completa oscuridad.",
     ),
     "cuervo_comun": BirdSpecies(
         common_name_es="Cuervo Común",
@@ -294,6 +323,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Passeriformes",
         family="Corvidae",
+        genus="Corvus",
+        wingspan_cm="115–150 cm",
+        weight_g="689–1625 g",
+        lifespan_years="hasta 21 años",
+        conservation_status="LC",
+        fun_fact="Tiene capacidad de resolución de problemas equivalente a la de un chimpancé de 7 años.",
     ),
     "golondrina_azul_blanca": BirdSpecies(
         common_name_es="Golondrina Azul y Blanca",
@@ -302,6 +337,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Passeriformes",
         family="Hirundinidae",
+        genus="Hirundo",
+        wingspan_cm="32–34 cm",
+        weight_g="17–20 g",
+        lifespan_years="hasta 11 años",
+        conservation_status="LC",
+        fun_fact="Recorre más de 10,000 km en su migración anual entre continentes.",
     ),
     "loro_amazonico": BirdSpecies(
         common_name_es="Loro Amazónico",
@@ -310,6 +351,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Psittaciformes",
         family="Psittacidae",
+        genus="Amazona",
+        wingspan_cm="38–43 cm",
+        weight_g="270–500 g",
+        lifespan_years="hasta 60 años",
+        conservation_status="LC",
+        fun_fact="Puede imitar el habla humana con notable precisión fonética.",
     ),
     "paloma_comun": BirdSpecies(
         common_name_es="Paloma Común",
@@ -318,6 +365,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Columbiformes",
         family="Columbidae",
+        genus="Columba",
+        wingspan_cm="62–72 cm",
+        weight_g="265–380 g",
+        lifespan_years="hasta 15 años",
+        conservation_status="LC",
+        fun_fact="Fue el primer animal domesticado por el ser humano para enviar mensajes.",
     ),
     "gaviota_pico_anillado": BirdSpecies(
         common_name_es="Gaviota Pico Anillado",
@@ -326,6 +379,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Charadriiformes",
         family="Laridae",
+        genus="Larus",
+        wingspan_cm="112–124 cm",
+        weight_g="300–700 g",
+        lifespan_years="hasta 23 años",
+        conservation_status="LC",
+        fun_fact="Puede beber agua salada gracias a glándulas especiales que excretan la sal.",
     ),
     "cormoran_grande": BirdSpecies(
         common_name_es="Cormorán Grande",
@@ -334,6 +393,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Pelecaniformes",
         family="Phalacrocoracidae",
+        genus="Phalacrocorax",
+        wingspan_cm="121–149 cm",
+        weight_g="1500–4000 g",
+        lifespan_years="hasta 25 años",
+        conservation_status="LC",
+        fun_fact="A diferencia de la mayoría de las aves acuáticas, sus plumas no son impermeables y debe secarlas extendiendo las alas.",
     ),
     "garza_azul": BirdSpecies(
         common_name_es="Garza Azul",
@@ -342,6 +407,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Pelecaniformes",
         family="Ardeidae",
+        genus="Ardea",
+        wingspan_cm="167–201 cm",
+        weight_g="1820–3630 g",
+        lifespan_years="hasta 24 años",
+        conservation_status="LC",
+        fun_fact="Puede permanecer inmóvil durante horas esperando que un pez se acerque.",
     ),
     "grulla_canadiense": BirdSpecies(
         common_name_es="Grulla Canadiense",
@@ -350,6 +421,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Gruiformes",
         family="Gruidae",
+        genus="Antigone",
+        wingspan_cm="155–200 cm",
+        weight_g="3400–4500 g",
+        lifespan_years="hasta 36 años",
+        conservation_status="LC",
+        fun_fact="Sus llamadas pueden escucharse a más de 3 km de distancia.",
     ),
     "halcon_peregrino": BirdSpecies(
         common_name_es="Halcón Peregrino",
@@ -358,6 +435,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Falconiformes",
         family="Falconidae",
+        genus="Falco",
+        wingspan_cm="89–120 cm",
+        weight_g="330–1500 g",
+        lifespan_years="hasta 19 años",
+        conservation_status="LC",
+        fun_fact="Es el animal más rápido del planeta, alcanzando 389 km/h en picada.",
     ),
     "pajaro_carpintero": BirdSpecies(
         common_name_es="Pájaro Carpintero",
@@ -366,6 +449,12 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Piciformes",
         family="Picidae",
+        genus="Dryocopus",
+        wingspan_cm="51–58 cm",
+        weight_g="196–314 g",
+        lifespan_years="hasta 12 años",
+        conservation_status="LC",
+        fun_fact="Puede golpear el árbol hasta 20 veces por segundo sin sufrir daño cerebral.",
     ),
     "colibri_amazonia": BirdSpecies(
         common_name_es="Colibrí Amazónico",
@@ -374,9 +463,14 @@ BIRD_SPECIES_DATABASE = {
         class_name="Aves",
         order="Apodiformes",
         family="Trochilidae",
+        genus="Amazilia",
+        wingspan_cm="10–12 cm",
+        weight_g="4–6 g",
+        lifespan_years="hasta 12 años",
+        conservation_status="LC",
+        fun_fact="Sus alas baten entre 50 y 80 veces por segundo, lo que produce su zumbido característico.",
     ),
 }
-
 # Profiles with verified taxonomic characteristics
 BIRD_PROFILES = [
     BirdProfile(

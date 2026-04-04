@@ -699,19 +699,44 @@ def format_result(result: InferenceResult) -> str:
             lines.append("✓ RESULTADO: Se identificó la especie de ave")
             lines.append("")
             for match in exact_matches:
+                # Look up full species data from profiles
+                profile = next(
+                    (p for p in BIRD_PROFILES if p.bird_id == match.bird_id), None
+                )
+                sp = profile.species if profile else None
+
                 lines.append(f"  Especie: {match.common_name_es}")
+                lines.append(f"  Nombre científico: {sp.scientific_name if sp else '—'}")
                 lines.append(f"  Nivel de confianza: {match.score_percent}%")
-                lines.append(f"  Orden:   {match.order}")
-                lines.append(f"  Familia: {match.family}")
                 lines.append("")
+                lines.append("  Taxonomía:")
+                lines.append(f"    Clase:   {sp.class_name if sp else 'Aves'}")
+                lines.append(f"    Orden:   {match.order}")
+                lines.append(f"    Familia: {match.family}")
+                lines.append(f"    Género:  {sp.genus if sp else '—'}")
+                lines.append("")
+                lines.append("  Datos biológicos:")
+                lines.append(f"    Envergadura: {sp.wingspan_cm if sp else '—'}")
+                lines.append(f"    Peso:        {sp.weight_g if sp else '—'}")
+                lines.append(f"    Longevidad:  {sp.lifespan_years if sp else '—'}")
+                lines.append(f"    Estado IUCN: {sp.conservation_status if sp else '—'}")
+                lines.append("")
+                if sp and sp.fun_fact:
+                    lines.append(f"  Curiosidad: {sp.fun_fact}")
+                    lines.append("")
         else:
             lines.append("≈ POSIBLES AVES ORDENADAS POR COINCIDENCIA")
             lines.append("")
             for match in result.matches[:5]:
+                profile = next(
+                    (p for p in BIRD_PROFILES if p.bird_id == match.bird_id), None
+                )
+                sp = profile.species if profile else None
                 lines.append(f"  Especie: {match.common_name_es}")
+                lines.append(f"  Nombre científico: {sp.scientific_name if sp else '—'}")
                 lines.append(f"  Nivel de confianza: {match.score_percent}%")
-                lines.append(f"  Orden:   {match.order}")
-                lines.append(f"  Familia: {match.family}")
+                lines.append(f"    Orden:   {match.order}  |  Familia: {match.family}")
+                lines.append(f"    Género:  {sp.genus if sp else '—'}  |  Estado IUCN: {sp.conservation_status if sp else '—'}")
                 lines.append("")
 
     lines.append("=" * 70)
