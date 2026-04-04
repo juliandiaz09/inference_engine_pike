@@ -41,3 +41,33 @@ bird_profile(ciguena_blanca, "Ciconia ciconia", Aves, Ciconiiformes, Ciconiidae,
 bird_profile(cotorra_monje, "Myiopsitta monachus", Aves, Psittaciformes, Psittacidae, urban, herbivore, curved_beak, small, resident)
 
 bird_profile(aguila_culebrera, "Circaetus gallicus", Aves, Accipitriformes, Accipitridae, savanna, carnivore, hooked_beak, large, diurnal)
+
+bird_profile(mochuelo_europeo, "Athene noctua", Aves, Strigiformes, Strigidae, forest, insectivore, large_eyes, small, nocturnal)
+
+bird_profile(aguila_cola_blanca, "Haliaeetus albicilla", Aves, Accipitriformes, Accipitridae, river, piscivore, hooked_beak, very_large, resident)
+
+bird_profile(somormujo_lavanco, "Podiceps cristatus", Aves, Podicipediformes, Podicipedidae, river, piscivore, straight_beak, medium, resident)
+
+bird_profile(ibis_sagrado, "Threskiornis aethiopicus", Aves, Pelecaniformes, Threskiornithidae, wetland, omnivore, curved_beak, medium, resident)
+
+bird_profile(espatula_rosada, "Platalea ajaja", Aves, Pelecaniformes, Threskiornithidae, wetland, omnivore, light_plumage, large, resident)
+
+bird_profile(alcatraz_atlantico, "Morus bassanus", Aves, Suliformes, Sulidae, coastal, piscivore, light_plumage, large, migratory)
+
+bird_profile(avestruz, "Struthio camelus", Aves, Struthioniformes, Struthionidae, savanna, herbivore, short_wings, very_large, resident)
+
+bird_profile(aguila_marcial, "Polemaetus bellicosus", Aves, Accipitriformes, Accipitridae, savanna, carnivore, spotted_plumage, very_large, diurnal)
+
+bird_profile(marabu_africano, "Leptoptilos crumenifer", Aves, Ciconiiformes, Ciconiidae, savanna, carnivore, elongated_beak, very_large, diurnal)
+
+bird_profile(charao, "Amazona pretrei", Aves, Psittaciformes, Psittacidae, forest, herbivore, curved_beak, medium, resident)
+
+bird_profile(herreruelo_comun, "Cyanistes caeruleus", Aves, Passeriformes, Paridae, forest, insectivore, short_beak, very_small, resident)
+
+bird_profile(reyezuelo_sencillo, "Regulus regulus", Aves, Passeriformes, Regulidae, forest, insectivore, short_beak, very_small, migratory)
+
+bird_profile(avetoro_comun, "Botaurus stellaris", Aves, Pelecaniformes, Ardeidae, wetland, piscivore, spotted_plumage, large, nocturnal)
+
+bird_profile(sisonte, "Mimus polyglottos", Aves, Passeriformes, Mimidae, urban, omnivore, straight_beak, small, resident)
+
+bird_profile(aguila_volatinera, "Terathopius ecaudatus", Aves, Accipitriformes, Accipitridae, savanna, carnivore, short_wings, large, diurnal)
