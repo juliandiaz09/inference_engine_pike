@@ -1,4 +1,4 @@
-# -*- coding: cp1252 -*-
+# -*- coding: utf-8 -*-
 """Tkinter user interface for avian expert system."""
 
 from __future__ import annotations
@@ -166,12 +166,12 @@ class AvianExpertApp(tk.Tk):
         self._build_process_card(process_card)
 
     def _build_left_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Configuraci�n", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Configuración", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="Selecciona el modo de inferencia y las caracter�sticas del ave.",
+            text="Selecciona el modo de inferencia y las características del ave.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 14))
 
@@ -225,7 +225,7 @@ class AvianExpertApp(tk.Tk):
         features_box.columnconfigure(0, weight=1)
         features_box.columnconfigure(1, weight=1)
 
-        ttk.Label(features_box, text="Caracter�sticas", style="SectionLabel.TLabel").grid(
+        ttk.Label(features_box, text="Características", style="SectionLabel.TLabel").grid(
             row=0, column=0, columnspan=2, sticky="w", pady=(0, 10)
         )
 
@@ -273,15 +273,20 @@ class AvianExpertApp(tk.Tk):
         action_box.columnconfigure(0, weight=1)
         action_box.columnconfigure(1, weight=1)
 
-        ttk.Button(action_box, text="Inferir", style="Action.TButton", command=self._infer).grid(row=0, column=0, sticky="ew", padx=(0, 8))
-        ttk.Button(action_box, text="Limpiar", style="Action.TButton", command=self._clear).grid(row=0, column=1, sticky="ew")
+        ttk.Button(action_box, text="Inferir", style="Action.TButton", command=self._infer).grid(
+            row=0, column=0, sticky="ew", padx=(0, 8)
+        )
+        ttk.Button(action_box, text="Limpiar", style="Action.TButton", command=self._clear).grid(
+            row=0, column=1, sticky="ew"
+        )
+
     def _build_result_card(self, parent: ttk.Frame) -> None:
-        ttk.Label(parent, text="Resultado de clasificaci�n", style="CardTitle.TLabel").grid(
+        ttk.Label(parent, text="Resultado de clasificación", style="CardTitle.TLabel").grid(
             row=0, column=0, sticky="w"
         )
         ttk.Label(
             parent,
-            text="Se muestran las especies identificadas con sus �rdenes y familias taxon�micas.",
+            text="Se muestran las especies identificadas con sus órdenes y familias taxonómicas.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 12))
 
@@ -314,7 +319,7 @@ class AvianExpertApp(tk.Tk):
         )
         ttk.Label(
             parent,
-            text="Visualiza el flujo de razonamiento y las reglas espec�ficas que se disparan.",
+            text="Visualiza el flujo de razonamiento y las reglas específicas que se disparan.",
             style="CardText.TLabel",
         ).grid(row=1, column=0, sticky="w", pady=(4, 10))
 
@@ -339,12 +344,14 @@ class AvianExpertApp(tk.Tk):
             height=7,
         )
         self._trace_tree.heading("#0", text="Etapa")
-        self._trace_tree.heading("detalle", text="Descripci�n")
+        self._trace_tree.heading("detalle", text="Descripción")
         self._trace_tree.column("#0", width=220, anchor="w")
         self._trace_tree.column("detalle", width=620, anchor="w")
         self._trace_tree.grid(row=0, column=0, sticky="nsew")
 
-        trace_scroll = ttk.Scrollbar(trace_frame, orient="vertical", command=self._trace_tree.yview)
+        trace_scroll = ttk.Scrollbar(
+            trace_frame, orient="vertical", command=self._trace_tree.yview
+        )
         trace_scroll.grid(row=0, column=1, sticky="ns")
         self._trace_tree.configure(yscrollcommand=trace_scroll.set)
 
@@ -404,9 +411,9 @@ class AvianExpertApp(tk.Tk):
             canvas.create_line(x1 + 10, y, x2 - 10, y, fill="#64748b", width=3, arrow="last")
 
         caption = (
-            "Flujo hacia adelante: hechos -> reglas -> conclusión"
+            "Flujo hacia adelante: hechos → reglas → conclusión"
             if mode == RECOGNITION_MODE_FORWARD
-            else "Flujo hacia atrás: meta -> subobjetivos -> hechos"
+            else "Flujo hacia atrás: meta → subobjetivos → hechos"
         )
         canvas.create_text(
             width // 2,
@@ -436,7 +443,7 @@ class AvianExpertApp(tk.Tk):
         )
         self._populate_trace(
             [
-                ("Preparacion", f"Se cargo el ejemplo {preset_name}."),
+                ("Preparación", f"Se cargó el ejemplo {preset_name}."),
                 (
                     "Sugerencia",
                     "Selecciona un modo de inferencia y presiona Inferir.",
@@ -447,8 +454,8 @@ class AvianExpertApp(tk.Tk):
     def _clear(self) -> None:
         for var in self._feature_vars.values():
             var.set("")
-        self._write_result("Formulario limpio. Selecciona nuevas caracter�sticas.")
-        self._populate_trace([("Estado", "Sin inferencia ejecutada todav�a.")])
+        self._write_result("Formulario limpio. Selecciona nuevas características.")
+        self._populate_trace([("Estado", "Sin inferencia ejecutada todavía.")])
         self._refresh_mode_badge()
 
     def _infer(self) -> None:
@@ -488,8 +495,3 @@ def run_app() -> None:
     app = AvianExpertApp()
     app._refresh_mode_badge()
     app.mainloop()
-
-
-
-
-
