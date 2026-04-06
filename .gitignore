@@ -5,3 +5,9 @@ src/animal_expert_system/knowledge/compiled_krb/
 pyke-master
 KNOWLEDGE_BASE.md
 README_COMPLETE.md
+gui_runtime_krb/
+compiled_krb/
+fresh_krb/
+gui_krb/
+gui2_krb/
+runtime_krb/

@@ -115,7 +115,9 @@ class AvianExpertSystem:
     """Motor de inferencia para identificacion de aves usando Pyke 1.1.1."""
 
     def __init__(self) -> None:
-        self._engine = knowledge_engine.engine(str(KNOWLEDGE_DIR))
+        # Use a package-local compiled target so Pyke does not pick up the
+        # stale root-level compiled_krb cache generated during earlier runs.
+        self._engine = knowledge_engine.engine((str(KNOWLEDGE_DIR), ".gui_runtime_krb"))
 
     # ------------------------------------------------------------------
     # API publica
