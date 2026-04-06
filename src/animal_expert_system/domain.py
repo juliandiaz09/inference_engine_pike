@@ -30,7 +30,7 @@ MODE_DESCRIPTIONS = {
 FEATURE_GROUPS = {
     "ecological": ("habitat", "diet"),
     "morphological": ("morphology", "size"),
-    "behavioral": ("activity", "behavior"),
+    "behavioral": ("activity",),
 }
 
 FEATURE_ORDER = tuple(
@@ -86,12 +86,6 @@ FEATURE_TRANSLATIONS = {
         "nocturno": "nocturnal",
         "migratorio": "migratory",
         "residente": "resident",
-    },
-    "behavior": {
-        "cazador": "hunter",
-        "forrajero": "forager",
-        "planeador": "glider",
-        "pescador": "fisher",
     },
 }
 
@@ -156,12 +150,6 @@ FEATURE_OPTIONS = {
         "migratorio",
         "residente",
     ],
-    "behavior": [
-        "cazador",
-        "forrajero",
-        "planeador",
-        "pescador",
-    ],
 }
 
 
@@ -187,7 +175,6 @@ EXAMPLE_PRESETS = {
         "morphology": "pico_ganchudo",
         "size": "muy_grande",
         "activity": "diurno",
-        "behavior": "cazador",
     },
     "Búho Real": {
         "habitat": "bosque",
@@ -195,7 +182,6 @@ EXAMPLE_PRESETS = {
         "morphology": "ojos_grandes",
         "size": "grande",
         "activity": "nocturno",
-        "behavior": "cazador",
     },
     "Garza Azul": {
         "habitat": "humedal",
@@ -203,7 +189,6 @@ EXAMPLE_PRESETS = {
         "morphology": "cuello_largo",
         "size": "grande",
         "activity": "diurno",
-        "behavior": "pescador",
     },
     "Martín Pescador": {
         "habitat": "rio",
@@ -211,7 +196,6 @@ EXAMPLE_PRESETS = {
         "morphology": "pico_alargado",
         "size": "pequeno",
         "activity": "residente",
-        "behavior": "pescador",
     },
     "Tucán Pico Iris": {
         "habitat": "selva",
@@ -219,7 +203,6 @@ EXAMPLE_PRESETS = {
         "morphology": "pico_alargado",
         "size": "mediano",
         "activity": "residente",
-        "behavior": "forrajero",
     },
     "Águila Arpía": {
         "habitat": "selva",
@@ -227,7 +210,6 @@ EXAMPLE_PRESETS = {
         "morphology": "garras_fuertes",
         "size": "muy_grande",
         "activity": "residente",
-        "behavior": "cazador",
     },
 }
 

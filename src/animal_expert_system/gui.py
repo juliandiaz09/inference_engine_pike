@@ -28,10 +28,6 @@ FEATURE_GROUP_LABELS = {
     "behavioral": "Conductuales",
 }
 
-FEATURE_LABEL_OVERRIDES = {
-    "behavior": "Comportamiento",
-}
-
 # Map TraceStep.kind -> Treeview tag
 STEP_KIND_TAG = {
     "fact": "fact",
@@ -315,9 +311,7 @@ class AvianExpertApp(tk.Tk):
 
                 ttk.Label(
                     field,
-                    text=FEATURE_LABEL_OVERRIDES.get(
-                        feature_name, FEATURE_LABELS.get(feature_name, humanize_label(feature_name))
-                    ),
+                    text=FEATURE_LABELS.get(feature_name, humanize_label(feature_name)),
                     style="CardText.TLabel",
                 ).grid(row=0, column=0, sticky="w")
                 var = tk.StringVar()
@@ -632,7 +626,6 @@ class AvianExpertApp(tk.Tk):
             self._trace_tree.delete(row)
 
         current_parent: str | None = None
-        child_count = 0
 
         for step in steps:
             tag = STEP_KIND_TAG.get(step.kind, "even")
@@ -651,8 +644,6 @@ class AvianExpertApp(tk.Tk):
                 # Additional lines as children of this phase
                 for extra in lines[1:]:
                     self._trace_tree.insert(current_parent, "end", text="", values=(f"  {extra}",), tags=(tag,))
-                child_count = 0
-
             elif current_parent is not None:
                 # Child of current phase
                 first_line = lines[0] if lines else step.detail
@@ -666,8 +657,6 @@ class AvianExpertApp(tk.Tk):
                 # Sub-lines as grandchildren (indented)
                 for extra in lines[1:]:
                     self._trace_tree.insert(child, "end", text="", values=(f"    {extra}",), tags=(tag,))
-                child_count += 1
-
             else:
                 # No parent yet — insert at root level
                 first_line = lines[0] if lines else step.detail
@@ -685,10 +674,11 @@ class AvianExpertApp(tk.Tk):
         total = len(steps)
         self._step_counter.configure(text=f"{total} pasos de inferencia")
 
-        # Auto-expand the first phase and keep results expanded
+        # Auto-expand the main phases so evaluation nodes are immediately visible
         children = self._trace_tree.get_children()
         if children:
-            self._trace_tree.item(children[0], open=True)
+            for item in children:
+                self._trace_tree.item(item, open=True)
             # Always expand result / error nodes
             self._expand_by_tag({"result", "error_row"})
 

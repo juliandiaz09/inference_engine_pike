@@ -13,6 +13,7 @@ profile_match
         animals.candidate($bird_id)
         animals.taxonomy($bird_id, $order, $family)
 
+# Derive the public taxonomy once a candidate has been found.
 taxonomy_from_candidate
     foreach
         animals.candidate($bird_id)
