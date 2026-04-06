@@ -1,11 +1,25 @@
 # Forward chaining rules for bird identification.
-# These rules seek exact matches of characteristics with stored bird profiles.
+# All fact calls on a single line for Pyke 1.1.1 compatibility.
+#
+# COINCIDENCIA EXACTA (5/5): regla identify_species
+#   assert animals.taxonomy($bird_id, $order, $family)
+#
+# COINCIDENCIA PARCIAL 4/5: 5 reglas, cada una deja UNA caracteristica libre
+#   assert animals.partial_match($bird_id, $order, $family, score_4)
+#
+# COINCIDENCIA PARCIAL 3/5: 1 regla, usa habitat+diet+morphology (trio mas diagnostico)
+#   assert animals.partial_match($bird_id, $order, $family, score_3)
+#
+# Las reglas classify_* siguen igual: refinan la clasificacion taxonomica
+# cuando ya existe un candidate exacto.
 
-# Rule 1: Compare observed characteristics with stored bird profiles
-identify_diurnal_raptor_species
+# ================================================================
+# BLOQUE 1 - COINCIDENCIA EXACTA (5/5)
+# ================================================================
+
+identify_species
     foreach
-        animals.bird_profile($bird_id, $scientific_name, $class_name, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $scientific_name, $class_name, $order, $family, $habitat, $diet, $morphology, $size, $activity)
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
@@ -15,82 +29,254 @@ identify_diurnal_raptor_species
         animals.candidate($bird_id)
         animals.taxonomy($bird_id, $order, $family)
 
-# Rule 2: Classify diurnal raptors (Accipitridae - Accipitriformes)
-classify_accipiter_diurnal
+# ================================================================
+# BLOQUE 2 - COINCIDENCIA PARCIAL 4/5
+# Cada regla deja UNA caracteristica libre ($_ en esa posicion).
+# Pyke aun hace la unificacion y el encadenamiento; el score_4
+# es un simbolo que permite distinguir estos resultados en Python.
+# ================================================================
+
+partial_4_no_habitat
+    foreach
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+    assert
+        animals.partial_match($bird_id, $order, $family, score_4)
+
+partial_4_no_diet
+    foreach
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $_, $morphology, $size, $activity)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+    assert
+        animals.partial_match($bird_id, $order, $family, score_4)
+
+partial_4_no_morphology
+    foreach
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $_, $size, $activity)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+    assert
+        animals.partial_match($bird_id, $order, $family, score_4)
+
+partial_4_no_size
+    foreach
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $_, $activity)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(activity, $activity)
+    assert
+        animals.partial_match($bird_id, $order, $family, score_4)
+
+partial_4_no_activity
+    foreach
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $_)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+    assert
+        animals.partial_match($bird_id, $order, $family, score_4)
+
+# ================================================================
+# BLOQUE 3 - COINCIDENCIA PARCIAL 3/5
+# Usa el trio mas diagnostico segun analisis: habitat + diet + morphology.
+# Size y activity libres.
+# ================================================================
+
+partial_3_habitat_diet_morphology
+    foreach
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $_, $_)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+    assert
+        animals.partial_match($bird_id, $order, $family, score_3)
+
+# ================================================================
+# BLOQUE 4 - CLASIFICACION TAXONOMICA (solo para candidatos exactos)
+# ================================================================
+
+classify_accipitriforme_diurnal
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Accipitriformes, Accipitridae,
-                           $_, carnivore, hooked_beak, $_, diurnal)
+        animals.bird_profile($bird_id, $_, $_, Accipitriformes, Accipitridae, $_, carnivore, $_, $_, diurnal)
     assert
-        animals.classification(order, Accipitriformes)
-        animals.classification(family, Accipitridae)
+        animals.classification($bird_id, order, Accipitriformes)
+        animals.classification($bird_id, family, Accipitridae)
 
-# Rule 3: Classify nocturnal raptors (Strigiformes)
+classify_accipitriforme_resident
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Accipitriformes, Accipitridae, $_, $diet, $_, $_, resident)
+    assert
+        animals.classification($bird_id, order, Accipitriformes)
+        animals.classification($bird_id, family, Accipitridae)
+
+classify_pandionidae_migratory
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Accipitriformes, Pandionidae, $_, piscivore, $_, $_, migratory)
+    assert
+        animals.classification($bird_id, order, Accipitriformes)
+        animals.classification($bird_id, family, Pandionidae)
+
 classify_strigiforme_nocturnal
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Strigiformes, $family,
-                           $_, carnivore, $_, $_, nocturnal)
+        animals.bird_profile($bird_id, $_, $_, Strigiformes, $family, $_, $_, $_, $_, nocturnal)
     assert
-        animals.classification(order, Strigiformes)
-        animals.classification(family, $family)
+        animals.classification($bird_id, order, Strigiformes)
+        animals.classification($bird_id, family, $family)
 
-# Rule 4: Classify passeriformes (Perching birds)
-classify_passeriforme
+classify_passeriforme_diurnal
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Passeriformes, $family,
-                           $_, $_, $_, $_, diurnal)
+        animals.bird_profile($bird_id, $_, $_, Passeriformes, $family, $_, $_, $_, $_, diurnal)
     assert
-        animals.classification(order, Passeriformes)
-        animals.classification(family, $family)
+        animals.classification($bird_id, order, Passeriformes)
+        animals.classification($bird_id, family, $family)
 
-# Rule 5: Classify psittacines (parrots)
-classify_psittaciforme_parrot
+classify_passeriforme_migratory
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Psittaciformes, Psittacidae,
-                           rainforest, herbivore, curved_beak, large, diurnal)
+        animals.bird_profile($bird_id, $_, $_, Passeriformes, $family, $_, $_, $_, $_, migratory)
     assert
-        animals.classification(order, Psittaciformes)
-        animals.classification(family, Psittacidae)
+        animals.classification($bird_id, order, Passeriformes)
+        animals.classification($bird_id, family, $family)
 
-# Rule 6: Classify columbiformes (doves)
-classify_columbiforme_pigeon
+classify_passeriforme_resident
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Columbiformes, Columbidae,
-                           urban, herbivore, straight_beak, medium, diurnal)
+        animals.bird_profile($bird_id, $_, $_, Passeriformes, $family, $_, $_, $_, $_, resident)
     assert
-        animals.classification(order, Columbiformes)
-        animals.classification(family, Columbidae)
+        animals.classification($bird_id, order, Passeriformes)
+        animals.classification($bird_id, family, $family)
 
-# Rule 7: Classify charadriiformes (gulls)
-classify_charadriforme_gull
+classify_psittaciforme
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Charadriiformes, Laridae,
-                           coastal, omnivore, webbed_feet, medium, diurnal)
+        animals.bird_profile($bird_id, $_, $_, Psittaciformes, $family, $_, herbivore, curved_beak, $_, $activity)
     assert
-        animals.classification(order, Charadriiformes)
-        animals.classification(family, Laridae)
+        animals.classification($bird_id, order, Psittaciformes)
+        animals.classification($bird_id, family, $family)
 
-# Rule 8: Classify pelecaniformes
+classify_columbiforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Columbiformes, $family, $_, herbivore, straight_beak, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Columbiformes)
+        animals.classification($bird_id, family, $family)
+
+classify_charadriforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Charadriiformes, $family, coastal, $_, $_, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Charadriiformes)
+        animals.classification($bird_id, family, $family)
+
 classify_pelecaniforme
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Pelecaniformes, $family,
-                           $_, $_, $_, $_, diurnal)
+        animals.bird_profile($bird_id, $_, $_, Pelecaniformes, $family, $_, $_, $_, $_, $activity)
     assert
-        animals.classification(order, Pelecaniformes)
-        animals.classification(family, $family)
+        animals.classification($bird_id, order, Pelecaniformes)
+        animals.classification($bird_id, family, $family)
 
-# Rule 9: Classify gruiformes (cranes)
-classify_gruiforme_crane
+classify_gruiforme
     foreach
         animals.candidate($bird_id)
-        animals.bird_profile($bird_id, $_, $_, Gruiformes, Gruidae,
-                           wetland, omnivore, long_neck, very_large, migratory)
+        animals.bird_profile($bird_id, $_, $_, Gruiformes, $family, wetland, $_, $_, $_, migratory)
     assert
-        animals.classification(order, Gruiformes)
-        animals.classification(family, Gruidae)
+        animals.classification($bird_id, order, Gruiformes)
+        animals.classification($bird_id, family, $family)
+
+classify_coraciiforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Coraciiformes, $family, river, piscivore, $_, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Coraciiformes)
+        animals.classification($bird_id, family, $family)
+
+classify_anseriforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Anseriformes, $family, river, omnivore, webbed_feet, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Anseriformes)
+        animals.classification($bird_id, family, $family)
+
+classify_phoenicopteriforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Phoenicopteriformes, $family, wetland, $_, $_, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Phoenicopteriformes)
+        animals.classification($bird_id, family, $family)
+
+classify_cathartiiforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Cathartiformes, $family, savanna, carnivore, $_, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Cathartiformes)
+        animals.classification($bird_id, family, $family)
+
+classify_piciforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Piciformes, $family, $_, $_, $_, $_, $activity)
+    assert
+        animals.classification($bird_id, order, Piciformes)
+        animals.classification($bird_id, family, $family)
+
+classify_ciconiiforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Ciconiiformes, $family, $_, $_, $_, very_large, $activity)
+    assert
+        animals.classification($bird_id, order, Ciconiiformes)
+        animals.classification($bird_id, family, $family)
+
+classify_suliforme
+    foreach
+        animals.candidate($bid)
+        animals.bird_profile($bid, $_, $_, Suliformes, $family, coastal, piscivore, $_, $_, $activity)
+    assert
+        animals.classification($bid, order, Suliformes)
+        animals.classification($bid, family, $family)
+
+classify_struthioniforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Struthioniformes, $family, savanna, $_, $_, very_large, $activity)
+    assert
+        animals.classification($bird_id, order, Struthioniformes)
+        animals.classification($bird_id, family, $family)
+
+classify_podicipediforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Podicipediformes, $family, river, $_, $_, $_, resident)
+    assert
+        animals.classification($bird_id, order, Podicipediformes)
+        animals.classification($bird_id, family, $family)
+
+classify_apodiforme
+    foreach
+        animals.candidate($bird_id)
+        animals.bird_profile($bird_id, $_, $_, Apodiformes, $family, $_, $_, $_, very_small, $activity)
+    assert
+        animals.classification($bird_id, order, Apodiformes)
+        animals.classification($bird_id, family, $family)

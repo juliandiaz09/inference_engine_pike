@@ -1,9 +1,24 @@
-﻿"""Inference engine for avian classification system."""
+﻿# -*- coding: utf-8 -*-
+"""Inference engine for avian classification system.
+
+Pyke 1.1.1 es el motor real para TODOS los niveles de coincidencia:
+
+  EXACTO  (5/5): prove_goal("animals.taxonomy($bird_id, $order, $family)")
+  PARCIAL (4/5): prove_goal("animals.partial_match($bird_id,$order,$family,score_4)")
+  PARCIAL (3/5): prove_goal("animals.partial_match($bird_id,$order,$family,score_3)")
+
+El fallback Python (_score_profiles) ya no se usa para nada. Si Pyke no
+demuestra ni siquiera 3/5, el resultado es vacío y se informa claramente.
+
+API usada de Pyke 1.1.1 (estable con Python 3.10):
+  engine.reset()
+  engine.add_case_specific_fact(fb, fact, args)
+  engine.activate(rb)
+  engine.prove_goal(goal_str)  -> context manager
+"""
 
 from __future__ import annotations
 
-import contextlib
-import io
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -21,85 +36,66 @@ from .domain import (
     humanize_label,
 )
 
-
 PACKAGE_DIR = Path(__file__).resolve().parent
 KNOWLEDGE_DIR = PACKAGE_DIR / "knowledge"
 
+# Score numerico por nivel de coincidencia
+_SCORE_MAP = {"score_4": 80, "score_3": 60}
 
-BACKWARD_RULE_DESCRIPTIONS: dict[str, dict] = {
-    "diurnal_accipiter_raptor": {
-        "label": "Es rapaz diurna Accipitriforme?",
-        "subgoals": [
-            "Orden = Accipitriformes",
-            "Familia = Accipitridae",
-            "Dieta = carnivoro",
-            "Morfologia = pico ganchudo",
-            "Actividad = diurno",
-        ],
-    },
-    "nocturnal_strigiforme_raptor": {
-        "label": "Es rapaz nocturna Strigiforme?",
-        "subgoals": [
-            "Orden = Strigiformes",
-            "Dieta = carnivoro",
-            "Actividad = nocturno",
-        ],
-    },
-    "perching_passeriforme": {
-        "label": "Es un Passeriforme?",
-        "subgoals": ["Orden = Passeriformes"],
-    },
-    "parrot_psittaciforme": {
-        "label": "Es un loro Psittaciforme?",
-        "subgoals": [
-            "Orden = Psittaciformes",
-            "Habitat = selva",
-            "Dieta = herbivoro",
-            "Morfologia = pico curvo",
-        ],
-    },
-    "pigeon_columbiforme": {
-        "label": "Es una paloma Columbiforme?",
-        "subgoals": [
-            "Orden = Columbiformes",
-            "Habitat = urbano",
-            "Dieta = herbivoro",
-        ],
-    },
-    "gull_charadriforme": {
-        "label": "Es una gaviota Charadriforme?",
-        "subgoals": [
-            "Orden = Charadriiformes",
-            "Habitat = costero",
-            "Morfologia = patas palmeadas",
-        ],
-    },
-    "pelecan_pelecaniforme": {
-        "label": "Es un Pelecaniforme?",
-        "subgoals": [
-            "Orden = Pelecaniformes",
-            "Actividad = diurno",
-        ],
-    },
-    "crane_gruiforme": {
-        "label": "Es una grulla Gruiforme?",
-        "subgoals": [
-            "Orden = Gruiformes",
-            "Habitat = humedal",
-            "Actividad = migratorio",
-        ],
-    },
-    "ave_desconocida": {
-        "label": "Ave sin clasificacion taxonomica",
-        "subgoals": [],
-    },
+# Etiqueta legible por nivel
+_SCORE_LABEL = {
+    100:  "Coincidencia exacta (5/5 caracteristicas)",
+    80:   "Coincidencia parcial alta (4/5 caracteristicas)",
+    60:   "Coincidencia parcial media (3/5 caracteristicas)",
+}
+
+# Sub-objetivo BC por orden (para la traza)
+_ORDER_TO_SUBGOAL: dict[str, str] = {
+    "Accipitriformes":     "is_accipitriforme",
+    "Strigiformes":        "is_strigiforme",
+    "Passeriformes":       "is_passeriforme",
+    "Psittaciformes":      "is_psittaciforme",
+    "Columbiformes":       "is_columbiforme",
+    "Charadriiformes":     "is_charadriforme",
+    "Pelecaniformes":      "is_pelecaniforme",
+    "Gruiformes":          "is_gruiforme",
+    "Coraciiformes":       "is_coraciiforme",
+    "Anseriformes":        "is_anseriforme",
+    "Phoenicopteriformes": "is_phoenicopteriforme",
+    "Cathartiformes":      "is_cathartiiforme",
+    "Piciformes":          "is_piciforme",
+    "Ciconiiformes":       "is_ciconiiforme",
+    "Suliformes":          "is_suliforme",
+    "Struthioniformes":    "is_struthioniforme",
+    "Podicipediformes":    "is_podicipediforme",
+    "Apodiformes":         "is_apodiforme",
+}
+
+_SUBGOAL_LABEL: dict[str, str] = {
+    "is_accipitriforme":     "Es Accipitriformes (rapaz)?",
+    "is_strigiforme":        "Es Strigiformes (rapaz nocturna)?",
+    "is_passeriforme":       "Es Passeriformes (ave cantora)?",
+    "is_psittaciforme":      "Es Psittaciformes (loro/cotorra)?",
+    "is_columbiforme":       "Es Columbiformes (paloma)?",
+    "is_charadriforme":      "Es Charadriiformes (gaviota/limicola)?",
+    "is_pelecaniforme":      "Es Pelecaniformes (garza/cormoran/ibis)?",
+    "is_gruiforme":          "Es Gruiformes (grulla)?",
+    "is_coraciiforme":       "Es Coraciiformes (martin pescador)?",
+    "is_anseriforme":        "Es Anseriformes (pato/ganso)?",
+    "is_phoenicopteriforme": "Es Phoenicopteriformes (flamingo)?",
+    "is_cathartiiforme":     "Es Cathartiformes (buitre)?",
+    "is_piciforme":          "Es Piciformes (carpintero/tucan)?",
+    "is_ciconiiforme":       "Es Ciconiiformes (ciguena)?",
+    "is_suliforme":          "Es Suliformes (alcatraz)?",
+    "is_struthioniforme":    "Es Struthioniformes (avestruz)?",
+    "is_podicipediforme":    "Es Podicipediformes (somormujo)?",
+    "is_apodiforme":         "Es Apodiformes (colibri)?",
 }
 
 
 @dataclass
 class TraceStep:
-    """A single annotated step in the inference trace."""
-
+    """Un paso anotado en la traza de inferencia."""
     stage: str
     detail: str
     kind: str = "info"
@@ -107,8 +103,7 @@ class TraceStep:
 
 @dataclass
 class InferenceResult:
-    """Complete result from the inference process."""
-
+    """Resultado completo del proceso de inferencia."""
     mode: str
     matches: list[BirdMatch]
     features: dict[str, str]
@@ -117,470 +112,509 @@ class InferenceResult:
 
 
 class AvianExpertSystem:
-    """Inference engine for bird identification using Pyke."""
+    """Motor de inferencia para identificacion de aves usando Pyke 1.1.1."""
 
     def __init__(self) -> None:
         self._engine = knowledge_engine.engine(str(KNOWLEDGE_DIR))
-        self._fired_rules: list[str] = []
+
+    # ------------------------------------------------------------------
+    # API publica
+    # ------------------------------------------------------------------
 
     def infer(self, features: dict[str, str], mode: str) -> InferenceResult:
-        """Execute inference in the specified mode."""
         if mode not in (RECOGNITION_MODE_FORWARD, RECOGNITION_MODE_BACKWARD):
             raise ValueError("Modo de inferencia invalido.")
-
-        normalized_features = self._normalize_features(features)
-        english_features = self._to_english_features(normalized_features)
-
+        normalized = self._normalize_features(features)
+        english = self._to_english_features(normalized)
         if mode == RECOGNITION_MODE_FORWARD:
-            return self._infer_forward_pyke(normalized_features, english_features)
-        return self._infer_backward_pyke(normalized_features, english_features)
+            return self._run_forward(normalized, english)
+        return self._run_backward(normalized, english)
 
-    def _infer_forward_pyke(
+    # ------------------------------------------------------------------
+    # Forward chaining
+    # ------------------------------------------------------------------
+
+    def _run_forward(
         self,
-        normalized_features: dict[str, str],
-        english_features: dict[str, str],
+        normalized: dict[str, str],
+        english: dict[str, str],
     ) -> InferenceResult:
-        """Forward chaining executed by Pyke."""
-        self._fired_rules = []
         self._engine.reset()
+        steps: list[TraceStep] = []
+        trace: list[str] = self._header_lines(RECOGNITION_MODE_FORWARD)
 
-        trace = self._build_initial_trace(RECOGNITION_MODE_FORWARD)
-        steps: list[TraceStep] = [
-            TraceStep(
-                stage="FASE 1",
-                detail="Registro de hechos observados en la base de hechos de Pyke",
-            )
-        ]
+        # Fase 1: assert hechos
+        steps.append(TraceStep(
+            stage="FASE 1",
+            detail="Registro de hechos observados en la base de hechos de Pyke",
+        ))
+        self._assert_facts(english, normalized, steps, trace)
 
-        for feature_name in FEATURE_ORDER:
-            self._engine.add_case_specific_fact(
-                "animals",
-                "characteristic",
-                (feature_name, english_features[feature_name]),
-            )
-            steps.append(
-                TraceStep(
-                    stage="HECHO",
-                    detail=(
-                        f"characteristic({humanize_label(feature_name)}, "
-                        f"{humanize_label(normalized_features[feature_name])}) -> "
-                        f"'{english_features[feature_name]}'"
-                    ),
-                    kind="fact",
-                )
-            )
-            trace.append(
-                f"HECHO REGISTRADO: {humanize_label(feature_name)} = "
-                f"{humanize_label(normalized_features[feature_name])}"
-            )
+        # Fase 2: activar FC
+        steps.append(TraceStep(
+            stage="FASE 2",
+            detail=(
+                "Activacion de animal_rules_fc\n"
+                "Pyke evalua TODAS las reglas FC:\n"
+                "  - identify_species        (5/5 exacto)\n"
+                "  - partial_4_no_*          (4/5 parcial)\n"
+                "  - partial_3_habitat_diet_morphology (3/5 parcial)"
+            ),
+        ))
+        trace += ["", "=" * 60, "ACTIVANDO: animal_rules_fc", "=" * 60]
+        self._engine.activate("animal_rules_fc")
 
-        trace.extend([
-            "",
-            "=" * 60,
-            "ACTIVANDO PYKE: animal_rules_fc",
-            "=" * 60,
-        ])
-        steps.append(
-            TraceStep(
-                stage="FASE 2",
-                detail="Activacion de la base de reglas animal_rules_fc",
-            )
-        )
+        # Leer clasificaciones afirmadas por FC (traza segura)
+        fc_lines = self._read_classification_facts()
+        if fc_lines:
+            steps.append(TraceStep(
+                stage="TRAZA FC",
+                detail="\n".join(fc_lines),
+                kind="rule",
+            ))
+            trace += fc_lines
 
-        rule_base = self._engine.get_rb("animal_rules_fc")
-        original_rule_fns: dict[str, object] = {}
-        for fc_rule in rule_base.fc_rules:
-            original_rule_fns[fc_rule.name] = fc_rule.rule_fn
+        # Fase 3: recoger resultados por nivel
+        steps.append(TraceStep(
+            stage="FASE 3",
+            detail="Recoleccion de resultados por nivel de coincidencia",
+        ))
 
-            def traced_rule(rule, *args, _rule_name=fc_rule.name, _original=fc_rule.rule_fn, **kwargs):
-                before = rule.rule_base.num_fc_rules_triggered
-                result = _original(rule, *args, **kwargs)
-                after = rule.rule_base.num_fc_rules_triggered
-                if after > before:
-                    self._fired_rules.extend([_rule_name] * (after - before))
-                return result
-
-            fc_rule.rule_fn = traced_rule
-
-        proofs: list[dict[str, str]] = []
-        try:
-            self._engine.activate("animal_rules_fc")
-            trace.append("BASE ACTIVADA: animal_rules_fc")
-            proofs = self._prove_pyke_goal("animals.taxonomy($bird_id, $order, $family)")
-        finally:
-            for fc_rule in rule_base.fc_rules:
-                fc_rule.rule_fn = original_rule_fns[fc_rule.name]
-
-        fired_rule_lines = self._build_rule_trace_lines(
-            self._fired_rules,
-            "Reglas disparadas por Pyke (forward chaining)",
-        )
-        if fired_rule_lines:
-            steps.append(
-                TraceStep(
-                    stage="TRAZA PYKE",
-                    detail="\n".join(fired_rule_lines),
-                    kind="rule",
-                )
-            )
-            trace.extend([""] + fired_rule_lines)
-
-        unique_proofs = self._dedupe_proofs(proofs)
-        if unique_proofs:
-            matches = self._build_exact_matches(unique_proofs)
-            steps.append(
-                TraceStep(
-                    stage="FASE 3",
-                    detail="Pyke demostro una o mas coincidencias exactas",
-                    kind="result",
-                )
-            )
-            trace.extend(["", "Pyke demostro una o mas coincidencias exactas."])
-            for proof in unique_proofs:
-                bird_id = str(proof.get("bird_id") or "")
-                order = str(proof.get("order") or "")
-                family = str(proof.get("family") or "")
-                profile = next((p for p in BIRD_PROFILES if p.bird_id == bird_id), None)
-                bird_name = profile.species.common_name_es if profile else bird_id
-                self._fired_rules.append(f"taxonomy:{bird_id}")
-                steps.append(
-                    TraceStep(
-                        stage="PRUEBA",
-                        detail=(
-                            f"Pyke probo taxonomy({bird_id}, {order}, {family})\n"
-                            f"  Especie: {bird_name}\n"
-                            f"  Orden: {order}\n"
-                            f"  Familia: {family}"
-                        ),
-                        kind="result",
-                    )
-                )
-                trace.extend([
-                    "",
-                    f"META PROBADA: taxonomy({bird_id}, {order}, {family})",
-                    f"Especie: {bird_name}",
-                    f"Orden: {order}",
-                    f"Familia: {family}",
-                ])
-        else:
-            matches = self._score_profiles(english_features)
-            steps.append(
-                TraceStep(
-                    stage="FASE 3",
-                    detail="Pyke no demostro una coincidencia exacta.",
-                )
-            )
-            trace.extend(["", "Pyke no pudo demostrar la meta exacta."])
+        matches = self._collect_all_matches_fc(steps, trace)
 
         return InferenceResult(
             mode=RECOGNITION_MODE_FORWARD,
             matches=matches,
-            features=normalized_features,
+            features=normalized,
             trace=trace,
             steps=steps,
         )
 
-    def _infer_backward_pyke(
+    def _collect_all_matches_fc(
         self,
-        normalized_features: dict[str, str],
-        english_features: dict[str, str],
-    ) -> InferenceResult:
-        """Backward chaining executed by Pyke."""
-        self._fired_rules = []
-        self._engine.reset()
+        steps: list[TraceStep],
+        trace: list[str],
+    ) -> list[BirdMatch]:
+        """Recolecta coincidencias exactas y parciales via prove_goal."""
 
-        trace = self._build_initial_trace(RECOGNITION_MODE_BACKWARD)
-        steps: list[TraceStep] = [
-            TraceStep(
-                stage="FASE 1",
-                detail="Definicion de la meta y preparacion de hechos observados",
-            ),
-            TraceStep(
-                stage="META",
-                detail=(
-                    "META PRINCIPAL: animal_rules_bc.taxonomy($bird_id, $order, $family)\n"
-                    "Pyke intentara demostrarla usando subobjetivos y hechos observados."
-                ),
-                kind="fact",
-            ),
-            TraceStep(
-                stage="FASE 2",
-                detail="Registro de hechos observados en la base de hechos de Pyke",
-            ),
-        ]
+        # -- Nivel exacto 5/5 --
+        exact_proofs = self._prove_goal("animals.taxonomy($bird_id, $order, $family)")
+        unique_exact = self._dedupe_proofs(exact_proofs)
 
-        for feature_name in FEATURE_ORDER:
-            self._engine.add_case_specific_fact(
-                "animals",
-                "characteristic",
-                (feature_name, english_features[feature_name]),
-            )
-            steps.append(
-                TraceStep(
-                    stage="HECHO",
-                    detail=(
-                        f"characteristic({humanize_label(feature_name)}, "
-                        f"{humanize_label(normalized_features[feature_name])}) -> "
-                        f"'{english_features[feature_name]}'"
-                    ),
-                    kind="fact",
-                )
-            )
+        if unique_exact:
+            matches = self._build_matches(unique_exact, 100)
+            steps.append(TraceStep(
+                stage="RESULTADO",
+                detail=f"Pyke demostro {len(unique_exact)} especie(s) exacta(s) (5/5)",
+                kind="result",
+            ))
+            for proof in unique_exact:
+                self._append_proof_step(steps, trace, proof, 100)
+            return matches
 
-        trace.extend([
-            "",
-            "=" * 60,
-            "ACTIVANDO PYKE: animal_rules_bc",
-            "=" * 60,
-        ])
-        steps.append(
-            TraceStep(
-                stage="FASE 3",
-                detail="Activacion de la base de reglas animal_rules_bc y prueba de la meta",
-            )
+        # -- Nivel parcial 4/5 --
+        partial_proofs = self._prove_goal(
+            "animals.partial_match($bird_id, $order, $family, $score)"
         )
+        p4 = self._dedupe_proofs(
+            [p for p in partial_proofs if str(p.get("score")) == "score_4"]
+        )
+        if p4:
+            matches = self._build_matches(p4, 80)
+            steps.append(TraceStep(
+                stage="RESULTADO",
+                detail=(
+                    f"Pyke no encontro coincidencia exacta.\n"
+                    f"Demostro {len(p4)} especie(s) con 4/5 caracteristicas."
+                ),
+                kind="result",
+            ))
+            for proof in p4:
+                self._append_proof_step(steps, trace, proof, 80)
+            return matches
 
+        # -- Nivel parcial 3/5 --
+        p3 = self._dedupe_proofs(
+            [p for p in partial_proofs if str(p.get("score")) == "score_3"]
+        )
+        if p3:
+            matches = self._build_matches(p3, 60)
+            steps.append(TraceStep(
+                stage="RESULTADO",
+                detail=(
+                    f"Pyke no encontro 4/5 ni exacta.\n"
+                    f"Demostro {len(p3)} especie(s) con trio habitat+dieta+morfologia (3/5)."
+                ),
+                kind="result",
+            ))
+            for proof in p3:
+                self._append_proof_step(steps, trace, proof, 60)
+            return matches
+
+        # -- Sin resultado --
+        steps.append(TraceStep(
+            stage="SIN RESULTADO",
+            detail=(
+                "Pyke no pudo demostrar ninguna coincidencia.\n"
+                "Ninguna especie comparte al menos habitat + dieta + morfologia\n"
+                "con las caracteristicas ingresadas."
+            ),
+            kind="error",
+        ))
+        trace += ["", "Pyke no demostro ninguna coincidencia (ni parcial)."]
+        return []
+
+    # ------------------------------------------------------------------
+    # Backward chaining
+    # ------------------------------------------------------------------
+
+    def _run_backward(
+        self,
+        normalized: dict[str, str],
+        english: dict[str, str],
+    ) -> InferenceResult:
+        self._engine.reset()
+        steps: list[TraceStep] = []
+        trace: list[str] = self._header_lines(RECOGNITION_MODE_BACKWARD)
+
+        # Fase 1: declarar meta
+        steps.append(TraceStep(
+            stage="FASE 1",
+            detail=(
+                "Declaracion de metas y preparacion de hechos\n"
+                "META EXACTA   : taxonomy($bird_id, $order, $family)\n"
+                "META PARCIAL  : taxonomy_partial($bird_id, $order, $family, $score)"
+            ),
+        ))
+        steps.append(TraceStep(
+            stage="META",
+            detail=(
+                "Pyke intentara demostrar top-down:\n"
+                "  taxonomy -> is_<orden> -> 5 hechos observados\n"
+                "  taxonomy_partial -> is_<orden>_partial -> 4 hechos\n"
+                "  taxonomy_partial -> is_partial_trio -> 3 hechos"
+            ),
+            kind="fact",
+        ))
+
+        # Fase 2: assert hechos
+        steps.append(TraceStep(
+            stage="FASE 2",
+            detail="Registro de hechos observados",
+        ))
+        self._assert_facts(english, normalized, steps, trace)
+
+        # Fase 3: activar BC y probar
+        steps.append(TraceStep(
+            stage="FASE 3",
+            detail=(
+                "Activacion de animal_rules_bc\n"
+                "Pyke recorre el arbol de prueba:\n"
+                "  taxonomy -> sub-objetivo exacto -> hechos\n"
+                "  taxonomy_partial -> sub-objetivo parcial -> hechos"
+            ),
+        ))
+        trace += ["", "=" * 60, "ACTIVANDO: animal_rules_bc", "=" * 60]
         self._engine.activate("animal_rules_bc")
-        trace.append("BASE ACTIVADA: animal_rules_bc")
 
-        goal = "animal_rules_bc.taxonomy($bird_id, $order, $family)"
-        proofs: list[dict[str, str]] = []
-        rule_names = self._get_rule_names("animal_rules_bc")
-        traced_rule_names: list[str] = []
-
-        try:
-            for rule_name in rule_names:
-                self._engine.trace("animal_rules_bc", rule_name)
-                traced_rule_names.append(rule_name)
-
-            proof_buffer = io.StringIO()
-            with contextlib.redirect_stdout(proof_buffer):
-                proofs = self._prove_pyke_goal(goal)
-
-            pyke_trace_lines = self._parse_pyke_trace_output(proof_buffer.getvalue())
-            if pyke_trace_lines:
-                steps.append(
-                    TraceStep(
-                        stage="TRAZA PYKE",
-                        detail="\n".join(pyke_trace_lines),
-                        kind="rule",
-                    )
-                )
-                trace.extend(pyke_trace_lines)
-        finally:
-            for rule_name in reversed(traced_rule_names):
-                self._engine.untrace("animal_rules_bc", rule_name)
-
-        unique_proofs = self._dedupe_proofs(proofs)
-        if unique_proofs:
-            matches = self._build_exact_matches(unique_proofs)
-            steps.append(
-                TraceStep(
-                    stage="FASE 3",
-                    detail="Pyke demostro una o mas taxonomias exactas",
-                    kind="result",
-                )
-            )
-            for proof in unique_proofs:
-                bird_id = str(proof.get("bird_id") or "")
-                order = str(proof.get("order") or "")
-                family = str(proof.get("family") or "")
-                profile = next((p for p in BIRD_PROFILES if p.bird_id == bird_id), None)
-                bird_name = profile.species.common_name_es if profile else bird_id
-                self._fired_rules.append(f"taxonomy:{bird_id}")
-                rule_name = self._get_backward_rule_name(order, family)
-                rule_info = BACKWARD_RULE_DESCRIPTIONS.get(
-                    rule_name, BACKWARD_RULE_DESCRIPTIONS["ave_desconocida"]
-                )
-
-                trace.extend([
-                    "",
-                    f"HIPOTESIS: {bird_name}",
-                    goal,
-                    f"REGLA OBJETIVO: {rule_name}",
-                    f"DESCRIPCION: {rule_info['label']}",
-                ])
-                if rule_info["subgoals"]:
-                    trace.append("SUBOBJETIVOS ESPERADOS:")
-                    for subgoal in rule_info["subgoals"]:
-                        trace.append(f"  - {subgoal}")
-                trace.extend([
-                    f"META DEMOSTRADA: taxonomy({bird_id}, {order}, {family})",
-                    f"Especie: {bird_name}",
-                    f"Orden: {order}",
-                    f"Familia: {family}",
-                ])
-                steps.append(
-                    TraceStep(
-                        stage="PRUEBA",
-                        detail=(
-                            f"Pyke demostro taxonomy({bird_id}, {order}, {family})\n"
-                            f"  Especie: {bird_name}\n"
-                            f"  Orden: {order}\n"
-                            f"  Familia: {family}"
-                        ),
-                        kind="result",
-                    )
-                )
-        else:
-            matches = self._score_profiles(english_features)
-            steps.append(
-                TraceStep(
-                    stage="FASE 4",
-                    detail="Pyke no demostro una coincidencia exacta.",
-                )
-            )
-            trace.extend(["", "Pyke no pudo demostrar la meta exacta."])
-            steps.append(
-                TraceStep(
-                    stage="SIN PRUEBA",
-                    detail="Pyke no demostro una coincidencia exacta.",
-                )
-            )
+        matches = self._collect_all_matches_bc(steps, trace, english)
 
         return InferenceResult(
             mode=RECOGNITION_MODE_BACKWARD,
             matches=matches,
-            features=normalized_features,
+            features=normalized,
             trace=trace,
             steps=steps,
         )
 
-    def _prove_pyke_goal(self, goal_str: str) -> list[dict[str, str]]:
-        """Collect all bindings returned by a Pyke goal."""
-        proofs: list[dict[str, str]] = []
+    def _collect_all_matches_bc(
+        self,
+        steps: list[TraceStep],
+        trace: list[str],
+        english: dict[str, str],
+    ) -> list[BirdMatch]:
+        """Recolecta coincidencias BC exactas y parciales."""
+
+        # -- Nivel exacto 5/5 --
+        exact_proofs = self._prove_goal(
+            "animal_rules_bc.taxonomy($bird_id, $order, $family)"
+        )
+        unique_exact = self._dedupe_proofs(exact_proofs)
+
+        if unique_exact:
+            matches = self._build_matches(unique_exact, 100)
+            steps.append(TraceStep(
+                stage="RESULTADO",
+                detail=f"Pyke demostro {len(unique_exact)} hipotesis exacta(s)",
+                kind="result",
+            ))
+            for proof in unique_exact:
+                self._append_bc_proof_step(steps, trace, proof, 100, english)
+            return matches
+
+        # -- Nivel parcial 4/5 --
+        partial_proofs = self._prove_goal(
+            "animal_rules_bc.taxonomy_partial($bird_id, $order, $family, $score)"
+        )
+        p4 = self._dedupe_proofs(
+            [p for p in partial_proofs if str(p.get("score")) == "score_4"]
+        )
+        if p4:
+            matches = self._build_matches(p4, 80)
+            steps.append(TraceStep(
+                stage="RESULTADO",
+                detail=(
+                    f"Pyke no demostro hipotesis exacta.\n"
+                    f"Demostro {len(p4)} hipotesis parcial(es) con 4/5."
+                ),
+                kind="result",
+            ))
+            for proof in p4:
+                self._append_bc_proof_step(steps, trace, proof, 80, english)
+            return matches
+
+        # -- Nivel parcial 3/5 --
+        p3 = self._dedupe_proofs(
+            [p for p in partial_proofs if str(p.get("score")) == "score_3"]
+        )
+        if p3:
+            matches = self._build_matches(p3, 60)
+            steps.append(TraceStep(
+                stage="RESULTADO",
+                detail=(
+                    f"Pyke no demostro 4/5 ni exacta.\n"
+                    f"Demostro {len(p3)} hipotesis con trio 3/5."
+                ),
+                kind="result",
+            ))
+            for proof in p3:
+                self._append_bc_proof_step(steps, trace, proof, 60, english)
+            return matches
+
+        # -- Sin resultado --
+        steps.append(TraceStep(
+            stage="SIN RESULTADO",
+            detail=(
+                "Pyke no pudo demostrar ninguna hipotesis.\n"
+                "Ninguna especie comparte habitat + dieta + morfologia\n"
+                "con las caracteristicas ingresadas."
+            ),
+            kind="error",
+        ))
+        trace += ["", "Pyke no demostro ninguna hipotesis (ni parcial)."]
+        return []
+
+    # ------------------------------------------------------------------
+    # Pyke helpers (API publica 1.1.1)
+    # ------------------------------------------------------------------
+
+    def _assert_facts(
+        self,
+        english: dict[str, str],
+        normalized: dict[str, str],
+        steps: list[TraceStep],
+        trace: list[str],
+    ) -> None:
+        for feat in FEATURE_ORDER:
+            eng_val = english[feat]
+            esp_val = normalized[feat]
+            self._engine.add_case_specific_fact(
+                "animals", "characteristic", (feat, eng_val)
+            )
+            detail = (
+                f"characteristic({humanize_label(feat)}, "
+                f"{humanize_label(esp_val)}) -> '{eng_val}'"
+            )
+            steps.append(TraceStep(stage="HECHO", detail=detail, kind="fact"))
+            trace.append(f"HECHO: {humanize_label(feat)} = {humanize_label(esp_val)}")
+
+    def _prove_goal(self, goal_str: str) -> list[dict[str, str]]:
+        results: list[dict[str, str]] = []
         with self._engine.prove_goal(goal_str) as gen:
-            for vars, _plan in gen:
-                proofs.append(
-                    {
-                        key: self._normalize_pyke_value(value)
-                        for key, value in vars.items()
-                    }
+            for bindings, _plan in gen:
+                results.append(
+                    {k: self._unwrap(v) for k, v in bindings.items()}
                 )
-        return proofs
+        return results
 
-    def _get_rule_names(self, rule_base_name: str) -> list[str]:
-        """Return all rule names registered in a Pyke rule base."""
-        rule_base = self._engine.get_rb(rule_base_name)
-        return list(rule_base.rules.keys())
-
-    @staticmethod
-    def _parse_pyke_trace_output(output: str) -> list[str]:
-        """Normalize raw Pyke trace output into displayable lines."""
-        return [line.rstrip() for line in output.splitlines() if line.strip()]
-
-    def _build_rule_trace_lines(self, fired_rules: list[str], heading: str) -> list[str]:
-        """Format a fired-rule list for display in the GUI."""
-        if not fired_rules:
-            return []
-
-        lines = [heading, f"Total de activaciones registradas: {len(fired_rules)}"]
-        for index, rule_name in enumerate(fired_rules, start=1):
-            lines.append(f"{index:02d}. {rule_name}")
-        return lines
-
-    def _build_exact_matches(self, proofs: list[dict[str, str]]) -> list[BirdMatch]:
-        """Turn successful Pyke proofs into exact BirdMatch objects."""
-        matches: list[BirdMatch] = []
-        for proof in proofs:
-            bird_id = str(proof.get("bird_id") or "")
-            profile = next((p for p in BIRD_PROFILES if p.bird_id == bird_id), None)
-            if profile is None:
-                continue
-            matches.append(
-                BirdMatch(
-                    bird_id=profile.bird_id,
-                    common_name_es=profile.species.common_name_es,
-                    order=str(proof.get("order", profile.species.order)),
-                    family=str(proof.get("family", profile.species.family)),
-                    matched_features=5,
-                    total_features=5,
-                    score_percent=100,
-                    is_exact=True,
-                )
+    def _read_classification_facts(self) -> list[str]:
+        """Lee hechos classification afirmados por FC via prove_goal (seguro)."""
+        lines: list[str] = []
+        try:
+            proofs = self._prove_goal(
+                "animals.classification($bird_id, $level, $value)"
             )
-        matches.sort(key=lambda item: (item.common_name_es, item.bird_id))
-        return matches
-
-    @staticmethod
-    def _dedupe_proofs(proofs: list[dict[str, str]]) -> list[dict[str, str]]:
-        """Keep only unique proofs by bird_id/order/family."""
-        unique: list[dict[str, str]] = []
-        seen: set[tuple[str, str, str]] = set()
-        for proof in proofs:
-            key = (
-                str(proof.get("bird_id")),
-                str(proof.get("order")),
-                str(proof.get("family")),
-            )
+        except Exception:
+            return lines
+        seen: set[tuple] = set()
+        for p in proofs:
+            key = (str(p.get("bird_id", "")),
+                   str(p.get("level", "")),
+                   str(p.get("value", "")))
             if key in seen:
                 continue
             seen.add(key)
-            unique.append(proof)
+            lines.append(
+                f"Regla FC: classification({key[0]}, {key[1]}, {key[2]})"
+            )
+        if lines:
+            lines.insert(0, f"Reglas FC disparadas: {len(lines)} clasificacion(es)")
+        return lines
+
+    # ------------------------------------------------------------------
+    # Construccion de resultados
+    # ------------------------------------------------------------------
+
+    def _build_matches(
+        self,
+        proofs: list[dict[str, str]],
+        score: int,
+    ) -> list[BirdMatch]:
+        is_exact = (score == 100)
+        feats_matched = {100: 5, 80: 4, 60: 3}.get(score, 3)
+        matches: list[BirdMatch] = []
+        for proof in proofs:
+            bird_id = str(proof.get("bird_id", ""))
+            profile = next((p for p in BIRD_PROFILES if p.bird_id == bird_id), None)
+            if profile is None:
+                continue
+            matches.append(BirdMatch(
+                bird_id=profile.bird_id,
+                common_name_es=profile.species.common_name_es,
+                order=str(proof.get("order", profile.species.order)),
+                family=str(proof.get("family", profile.species.family)),
+                matched_features=feats_matched,
+                total_features=5,
+                score_percent=score,
+                is_exact=is_exact,
+            ))
+        matches.sort(key=lambda m: m.common_name_es)
+        return matches
+
+    def _append_proof_step(
+        self,
+        steps: list[TraceStep],
+        trace: list[str],
+        proof: dict[str, str],
+        score: int,
+    ) -> None:
+        bird_id = str(proof.get("bird_id", ""))
+        order   = str(proof.get("order", ""))
+        family  = str(proof.get("family", ""))
+        name    = self._bird_name(bird_id)
+        label   = _SCORE_LABEL.get(score, f"{score}%")
+        steps.append(TraceStep(
+            stage="PRUEBA",
+            detail=(
+                f"Pyke probo: taxonomy({bird_id}, {order}, {family})\n"
+                f"  Especie : {name}\n"
+                f"  Orden   : {order}\n"
+                f"  Familia : {family}\n"
+                f"  Nivel   : {label}"
+            ),
+            kind="result",
+        ))
+        trace += [
+            "",
+            f"PRUEBA: taxonomy({bird_id}, {order}, {family})",
+            f"  Especie : {name}  |  Nivel: {label}",
+        ]
+
+    def _append_bc_proof_step(
+        self,
+        steps: list[TraceStep],
+        trace: list[str],
+        proof: dict[str, str],
+        score: int,
+        english: dict[str, str],
+    ) -> None:
+        bird_id  = str(proof.get("bird_id", ""))
+        order    = str(proof.get("order", ""))
+        family   = str(proof.get("family", ""))
+        name     = self._bird_name(bird_id)
+        label    = _SCORE_LABEL.get(score, f"{score}%")
+        subgoal  = _ORDER_TO_SUBGOAL.get(order, "is_unknown")
+        sg_label = _SUBGOAL_LABEL.get(subgoal, subgoal)
+
+        # Sufijo del sub-objetivo segun nivel
+        if score == 100:
+            sg_used = sg_label
+        elif score == 80:
+            sg_used = sg_label.replace("?", " (4/5)?")
+        else:
+            sg_used = "is_partial_trio (habitat+dieta+morfologia, 3/5)"
+
+        chain = [
+            f"Pyke probo: taxonomy -> {sg_used}",
+            f"  Especie : {name}",
+            f"  Orden   : {order}",
+            f"  Familia : {family}",
+            f"  Nivel   : {label}",
+            "  Hechos verificados:",
+        ]
+        feats_checked = {100: FEATURE_ORDER, 80: FEATURE_ORDER[1:], 60: FEATURE_ORDER[:3]}
+        for feat in feats_checked.get(score, FEATURE_ORDER[:3]):
+            chain.append(f"    characteristic({feat}, {english.get(feat, '?')}) OK")
+
+        steps.append(TraceStep(
+            stage="PRUEBA",
+            detail="\n".join(chain),
+            kind="result",
+        ))
+        trace += ["", f"BC PRUEBA: {name}  Nivel: {label}"]
+
+    # ------------------------------------------------------------------
+    # Utilidades estaticas
+    # ------------------------------------------------------------------
+
+    @staticmethod
+    def _dedupe_proofs(proofs: list[dict[str, str]]) -> list[dict[str, str]]:
+        unique: list[dict[str, str]] = []
+        seen: set[tuple] = set()
+        for p in proofs:
+            key = (str(p.get("bird_id")), str(p.get("order")), str(p.get("family")))
+            if key in seen:
+                continue
+            seen.add(key)
+            unique.append(p)
         return unique
 
     @staticmethod
-    def _normalize_pyke_value(value):
-        """Flatten simple tuple bindings returned by Pyke."""
+    def _unwrap(value):
         if isinstance(value, tuple) and len(value) == 1:
-            return AvianExpertSystem._normalize_pyke_value(value[0])
+            return AvianExpertSystem._unwrap(value[0])
         return value
 
-    def _score_profiles(self, english_features: dict[str, str]) -> list[BirdMatch]:
-        """Score each profile by the number of matched features."""
-        matches: list[BirdMatch] = []
-        total_features = len(FEATURE_ORDER)
-
-        for profile in BIRD_PROFILES:
-            matched = sum(
-                1
-                for feature_name in FEATURE_ORDER
-                if profile.features.get(feature_name) == english_features.get(feature_name)
-            )
-            score_percent = round((matched / total_features) * 100)
-            matches.append(
-                BirdMatch(
-                    bird_id=profile.bird_id,
-                    common_name_es=profile.species.common_name_es,
-                    order=profile.species.order,
-                    family=profile.species.family,
-                    matched_features=matched,
-                    total_features=total_features,
-                    score_percent=score_percent,
-                    is_exact=matched == total_features,
-                )
-            )
-
-        matches.sort(key=lambda item: (item.score_percent, item.matched_features), reverse=True)
-        return matches
+    @staticmethod
+    def _bird_name(bird_id: str) -> str:
+        profile = next((p for p in BIRD_PROFILES if p.bird_id == bird_id), None)
+        return profile.species.common_name_es if profile else bird_id
 
     @staticmethod
-    def _get_backward_rule_name(order: str, family: str) -> str:
-        rule_map = {
-            ("Accipitriformes", "Accipitridae"): "diurnal_accipiter_raptor",
-            ("Strigiformes", "Strigidae"): "nocturnal_strigiforme_raptor",
-            ("Strigiformes", "Tytonidae"): "nocturnal_strigiforme_raptor",
-            ("Passeriformes", "Corvidae"): "perching_passeriforme",
-            ("Passeriformes", "Hirundinidae"): "perching_passeriforme",
-            ("Psittaciformes", "Psittacidae"): "parrot_psittaciforme",
-            ("Columbiformes", "Columbidae"): "pigeon_columbiforme",
-            ("Charadriiformes", "Laridae"): "gull_charadriforme",
-            ("Pelecaniformes", "Phalacrocoracidae"): "pelecan_pelecaniforme",
-            ("Pelecaniformes", "Ardeidae"): "pelecan_pelecaniforme",
-            ("Gruiformes", "Gruidae"): "crane_gruiforme",
-            ("Falconiformes", "Falconidae"): "diurnal_accipiter_raptor",
-            ("Piciformes", "Picidae"): "perching_passeriforme",
-            ("Apodiformes", "Trochilidae"): "perching_passeriforme",
-        }
-        return rule_map.get((order, family), "ave_desconocida")
+    def _normalize_features(features: dict[str, str]) -> dict[str, str]:
+        normalized: dict[str, str] = {}
+        for feat in FEATURE_ORDER:
+            val = features.get(feat)
+            if not val:
+                raise ValueError(f"Caracteristica faltante: {feat}")
+            normalized[feat] = val
+        return normalized
 
-    def _build_initial_trace(self, mode: str) -> list[str]:
+    @staticmethod
+    def _to_english_features(features: dict[str, str]) -> dict[str, str]:
+        return {
+            feat: FEATURE_TRANSLATIONS.get(feat, {}).get(val, val)
+            for feat, val in features.items()
+        }
+
+    @staticmethod
+    def _header_lines(mode: str) -> list[str]:
         return [
             "=" * 60,
             "SISTEMA EXPERTO DE IDENTIFICACION DE AVES",
             "=" * 60,
             "",
-            f"Modo seleccionado: {MODE_LABELS[mode]}",
+            f"Modo: {MODE_LABELS[mode]}",
             f"Descripcion: {MODE_DESCRIPTIONS[mode]}",
             "",
             "=" * 60,
@@ -589,26 +623,12 @@ class AvianExpertSystem:
             "",
         ]
 
-    @staticmethod
-    def _normalize_features(features: dict[str, str]) -> dict[str, str]:
-        normalized: dict[str, str] = {}
-        for feature_name in FEATURE_ORDER:
-            value = features.get(feature_name)
-            if not value:
-                raise ValueError(f"Caracteristica faltante: {feature_name}")
-            normalized[feature_name] = value
-        return normalized
 
-    @staticmethod
-    def _to_english_features(features: dict[str, str]) -> dict[str, str]:
-        return {
-            feature_name: FEATURE_TRANSLATIONS.get(feature_name, {}).get(value, value)
-            for feature_name, value in features.items()
-        }
-
+# ======================================================================
+# Formateador de resultados (contrato publico sin cambios para gui.py)
+# ======================================================================
 
 def format_result(result: InferenceResult) -> str:
-    """Format inference result for display."""
     lines: list[str] = [
         "",
         "=" * 70,
@@ -618,66 +638,74 @@ def format_result(result: InferenceResult) -> str:
         "",
         "Caracteristicas ingresadas:",
     ]
-
     for key in FEATURE_ORDER:
-        lines.append(f"  * {humanize_label(key)}: {humanize_label(result.features[key])}")
-
-    lines.extend(["", "─" * 70])
+        lines.append(
+            f"  * {humanize_label(key)}: {humanize_label(result.features[key])}"
+        )
+    lines.append("─" * 70)
 
     if not result.matches:
-        lines.extend([
-            "x CONCLUSION: No se encontro coincidencia exacta",
+        lines += [
             "",
-            "La combinacion de caracteristicas no corresponde a ninguna",
-            "especie en la base de conocimiento taxonomica verificable.",
+            "x CONCLUSION: Pyke no encontro ninguna coincidencia",
             "",
-            "Sugerencia: Revisa las caracteristicas seleccionadas.",
-        ])
-    else:
-        exact_matches = [match for match in result.matches if match.is_exact]
-        if exact_matches:
-            lines.extend(["✓ RESULTADO: Se identifico la especie de ave", ""])
-            for match in exact_matches:
-                profile = next((p for p in BIRD_PROFILES if p.bird_id == match.bird_id), None)
-                sp = profile.species if profile else None
+            "Ninguna especie comparte habitat + dieta + morfologia",
+            "con las caracteristicas ingresadas.",
+            "Revisa los valores seleccionados.",
+        ]
+        lines.append("=" * 70)
+        return "\n".join(lines)
 
-                lines.append(f"  Especie: {match.common_name_es}")
-                lines.append(f"  Nombre cientifico: {sp.scientific_name if sp else '—'}")
-                if result.mode == RECOGNITION_MODE_FORWARD:
-                    lines.append(f"  Pyke demostro la especie: {match.score_percent}%")
-                else:
-                    lines.append(f"  Nivel de confianza: {match.score_percent}%")
-                lines.append("")
-                lines.append("  Taxonomia:")
-                lines.append(f"    Clase:   {sp.class_name if sp else 'Aves'}")
-                lines.append(f"    Orden:   {match.order}")
-                lines.append(f"    Familia: {match.family}")
-                lines.append(f"    Genero:  {sp.genus if sp else '—'}")
-                lines.append("")
-                lines.append("  Datos biologicos:")
-                lines.append(f"    Envergadura: {sp.wingspan_cm if sp else '—'}")
-                lines.append(f"    Peso:        {sp.weight_g if sp else '—'}")
-                lines.append(f"    Longevidad:  {sp.lifespan_years if sp else '—'}")
-                lines.append(f"    Estado IUCN: {sp.conservation_status if sp else '—'}")
-                lines.append("")
-                if sp and sp.fun_fact:
-                    lines.append(f"  Curiosidad: {sp.fun_fact}")
-                    lines.append("")
-        else:
-            lines.extend([
-                "x CONCLUSION: Pyke no pudo demostrar una especie exacta",
-                "",
-                "Posibles especies ordenadas por coincidencia:",
-                "",
-            ])
-            for match in result.matches[:5]:
-                profile = next((p for p in BIRD_PROFILES if p.bird_id == match.bird_id), None)
-                sp = profile.species if profile else None
-                lines.append(f"  Especie: {match.common_name_es}")
-                lines.append(f"  Nombre cientifico: {sp.scientific_name if sp else '—'}")
-                lines.append(f"  Nivel de confianza: {match.score_percent}%")
-                lines.append(f"    Orden:   {match.order}  |  Familia: {match.family}")
-                lines.append("")
+    exact   = [m for m in result.matches if m.is_exact]
+    partial = [m for m in result.matches if not m.is_exact]
+
+    if exact:
+        lines += ["", "RESULTADO EXACTO (5/5 - Pyke demostro la especie)", ""]
+        for match in exact:
+            _append_match_lines(lines, match, result.mode)
+    elif partial:
+        score = partial[0].score_percent
+        nivel = _SCORE_LABEL.get(score, f"{score}%")
+        lines += [
+            "",
+            f"RESULTADO PARCIAL ({nivel})",
+            "Pyke demostro estas especies como candidatas:",
+            "",
+        ]
+        for match in partial[:8]:
+            _append_match_lines(lines, match, result.mode)
 
     lines.append("=" * 70)
     return "\n".join(lines)
+
+
+def _append_match_lines(
+    lines: list[str],
+    match: BirdMatch,
+    mode: str,
+) -> None:
+    profile = next((p for p in BIRD_PROFILES if p.bird_id == match.bird_id), None)
+    sp = profile.species if profile else None
+    nivel = _SCORE_LABEL.get(match.score_percent, f"{match.score_percent}%")
+
+    lines += [
+        f"  Especie: {match.common_name_es}",
+        f"  Nombre cientifico: {sp.scientific_name if sp else '—'}",
+        f"  Nivel de confianza: {match.score_percent}%  ({nivel})",
+        "",
+        "  Taxonomia:",
+        f"    Clase:   {sp.class_name if sp else 'Aves'}",
+        f"    Orden:   {match.order}",
+        f"    Familia: {match.family}",
+        f"    Genero:  {sp.genus if sp else '—'}",
+        "",
+        "  Datos biologicos:",
+        f"    Envergadura: {sp.wingspan_cm if sp else '—'}",
+        f"    Peso:        {sp.weight_g if sp else '—'}",
+        f"    Longevidad:  {sp.lifespan_years if sp else '—'}",
+        f"    Estado IUCN: {sp.conservation_status if sp else '—'}",
+        "",
+    ]
+    if sp and sp.fun_fact:
+        lines += [f"  Curiosidad: {sp.fun_fact}", ""]
+    lines.append("─" * 40)

@@ -1,138 +1,614 @@
 # Backward chaining rules for bird identification.
-# These rules are chained so the Pyke trace shows the proof path.
+# All fact calls on a single line for Pyke 1.1.1 compatibility.
+#
+# ESTRUCTURA DE PRUEBA:
+#
+# NIVEL EXACTO (5/5):
+#   taxonomy($bird_id, $order, $family)
+#     -> is_<orden>_exact($bird_id, $order, $family)
+#          -> bird_profile + 5 characteristic facts
+#
+# NIVEL PARCIAL 4/5:
+#   taxonomy_partial($bird_id, $order, $family, $score)
+#     -> is_<orden>_partial($bird_id, $order, $family)
+#          -> bird_profile + 4 characteristic facts (1 libre)
+#          -> assert score_4
+#
+# NIVEL PARCIAL 3/5:
+#   taxonomy_partial($bird_id, $order, $family, $score)
+#     -> is_partial_trio($bird_id, $order, $family)
+#          -> bird_profile + habitat + diet + morphology
+
+# ================================================================
+# META EXACTA: taxonomy
+# ================================================================
 
 taxonomy_accipitriformes
     use taxonomy($bird_id, $order, $family)
     when
-        diurnal_accipiter_raptor($bird_id, $order, $family)
+        is_accipitriforme($bird_id, $order, $family)
 
 taxonomy_strigiformes
     use taxonomy($bird_id, $order, $family)
     when
-        nocturnal_strigiforme_raptor($bird_id, $order, $family)
+        is_strigiforme($bird_id, $order, $family)
 
 taxonomy_passeriformes
     use taxonomy($bird_id, $order, $family)
     when
-        perching_passeriforme($bird_id, $order, $family)
+        is_passeriforme($bird_id, $order, $family)
 
 taxonomy_psittaciformes
     use taxonomy($bird_id, $order, $family)
     when
-        parrot_psittaciforme($bird_id, $order, $family)
+        is_psittaciforme($bird_id, $order, $family)
 
 taxonomy_columbiformes
     use taxonomy($bird_id, $order, $family)
     when
-        pigeon_columbiforme($bird_id, $order, $family)
+        is_columbiforme($bird_id, $order, $family)
 
 taxonomy_charadriiformes
     use taxonomy($bird_id, $order, $family)
     when
-        gull_charadriforme($bird_id, $order, $family)
+        is_charadriforme($bird_id, $order, $family)
 
 taxonomy_pelecaniformes
     use taxonomy($bird_id, $order, $family)
     when
-        pelecan_pelecaniforme($bird_id, $order, $family)
+        is_pelecaniforme($bird_id, $order, $family)
 
 taxonomy_gruiformes
     use taxonomy($bird_id, $order, $family)
     when
-        crane_gruiforme($bird_id, $order, $family)
+        is_gruiforme($bird_id, $order, $family)
 
-# Proof of diurnal raptors (Accipitridae - Accipitriformes)
-diurnal_accipiter_raptor
-    use diurnal_accipiter_raptor($bird_id, $order, $family)
+taxonomy_coraciiformes
+    use taxonomy($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        is_coraciiforme($bird_id, $order, $family)
+
+taxonomy_anseriformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_anseriforme($bird_id, $order, $family)
+
+taxonomy_phoenicopteriformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_phoenicopteriforme($bird_id, $order, $family)
+
+taxonomy_cathartiformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_cathartiiforme($bird_id, $order, $family)
+
+taxonomy_piciformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_piciforme($bird_id, $order, $family)
+
+taxonomy_ciconiiformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_ciconiiforme($bird_id, $order, $family)
+
+taxonomy_suliformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_suliforme($bird_id, $order, $family)
+
+taxonomy_struthioniformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_struthioniforme($bird_id, $order, $family)
+
+taxonomy_podicipediformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_podicipediforme($bird_id, $order, $family)
+
+taxonomy_apodiformes
+    use taxonomy($bird_id, $order, $family)
+    when
+        is_apodiforme($bird_id, $order, $family)
+
+# ================================================================
+# META PARCIAL: taxonomy_partial
+# Pyke intenta primero 4/5 para cada orden, luego el trio 3/5.
+# ================================================================
+
+partial_accipitriformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_accipitriforme_partial($bird_id, $order, $family)
+
+partial_strigiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_strigiforme_partial($bird_id, $order, $family)
+
+partial_passeriformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_passeriforme_partial($bird_id, $order, $family)
+
+partial_psittaciformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_psittaciforme_partial($bird_id, $order, $family)
+
+partial_columbiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_columbiforme_partial($bird_id, $order, $family)
+
+partial_charadriiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_charadriforme_partial($bird_id, $order, $family)
+
+partial_pelecaniformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_pelecaniforme_partial($bird_id, $order, $family)
+
+partial_gruiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_gruiforme_partial($bird_id, $order, $family)
+
+partial_coraciiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_coraciiforme_partial($bird_id, $order, $family)
+
+partial_anseriformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_anseriforme_partial($bird_id, $order, $family)
+
+partial_phoenicopteriformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_phoenicopteriforme_partial($bird_id, $order, $family)
+
+partial_cathartiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_cathartiiforme_partial($bird_id, $order, $family)
+
+partial_piciformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_piciforme_partial($bird_id, $order, $family)
+
+partial_ciconiiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_ciconiiforme_partial($bird_id, $order, $family)
+
+partial_suliformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_suliforme_partial($bird_id, $order, $family)
+
+partial_struthioniformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_struthioniforme_partial($bird_id, $order, $family)
+
+partial_podicipediformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_podicipediforme_partial($bird_id, $order, $family)
+
+partial_apodiformes_4
+    use taxonomy_partial($bird_id, $order, $family, score_4)
+    when
+        is_apodiforme_partial($bird_id, $order, $family)
+
+partial_trio_3
+    use taxonomy_partial($bird_id, $order, $family, score_3)
+    when
+        is_partial_trio($bird_id, $order, $family)
+
+# ================================================================
+# SUB-OBJETIVOS EXACTOS (5/5)
+# ================================================================
+
+is_accipitriforme
+    use is_accipitriforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Accipitriformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of nocturnal raptors (Strigiformes)
-nocturnal_strigiforme_raptor
-    use nocturnal_strigiforme_raptor($bird_id, $order, $family)
+is_strigiforme
+    use is_strigiforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Strigiformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of passeriformes
-perching_passeriforme
-    use perching_passeriforme($bird_id, $order, $family)
+is_passeriforme
+    use is_passeriforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Passeriformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of psittacines (parrots)
-parrot_psittaciforme
-    use parrot_psittaciforme($bird_id, $order, $family)
+is_psittaciforme
+    use is_psittaciforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Psittaciformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of columbiformes (doves)
-pigeon_columbiforme
-    use pigeon_columbiforme($bird_id, $order, $family)
+is_columbiforme
+    use is_columbiforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Columbiformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of charadriiformes (gulls)
-gull_charadriforme
-    use gull_charadriforme($bird_id, $order, $family)
+is_charadriforme
+    use is_charadriforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Charadriiformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of pelecaniformes
-pelecan_pelecaniforme
-    use pelecan_pelecaniforme($bird_id, $order, $family)
+is_pelecaniforme
+    use is_pelecaniforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Pelecaniformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# Proof of gruiformes (cranes)
-crane_gruiforme
-    use crane_gruiforme($bird_id, $order, $family)
+is_gruiforme
+    use is_gruiforme($bird_id, $order, $family)
     when
-        animals.bird_profile($bird_id, $_, $_, $order, $family,
-                           $habitat, $diet, $morphology, $size, $activity)
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Gruiformes
         animals.characteristic(habitat, $habitat)
         animals.characteristic(diet, $diet)
         animals.characteristic(morphology, $morphology)
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
+
+is_coraciiforme
+    use is_coraciiforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Coraciiformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_anseriforme
+    use is_anseriforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Anseriformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_phoenicopteriforme
+    use is_phoenicopteriforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Phoenicopteriformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_cathartiiforme
+    use is_cathartiiforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Cathartiformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_piciforme
+    use is_piciforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Piciformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_ciconiiforme
+    use is_ciconiiforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Ciconiiformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_suliforme
+    use is_suliforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Suliformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_struthioniforme
+    use is_struthioniforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Struthioniformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_podicipediforme
+    use is_podicipediforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Podicipediformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_apodiforme
+    use is_apodiforme($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $size, $activity)
+        check $order =~ Apodiformes
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+# ================================================================
+# SUB-OBJETIVOS PARCIALES 4/5
+# Cada uno deja UNA caracteristica libre. Pyke hace la unificacion
+# de las 4 restantes y el encadenamiento sigue siendo real.
+# ================================================================
+
+is_accipitriforme_partial
+    use is_accipitriforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Accipitriformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_strigiforme_partial
+    use is_strigiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Strigiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_passeriforme_partial
+    use is_passeriforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Passeriformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_psittaciforme_partial
+    use is_psittaciforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Psittaciformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_columbiforme_partial
+    use is_columbiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Columbiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_charadriforme_partial
+    use is_charadriforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Charadriiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_pelecaniforme_partial
+    use is_pelecaniforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Pelecaniformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_gruiforme_partial
+    use is_gruiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Gruiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_coraciiforme_partial
+    use is_coraciiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Coraciiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_anseriforme_partial
+    use is_anseriforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Anseriformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_phoenicopteriforme_partial
+    use is_phoenicopteriforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Phoenicopteriformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_cathartiiforme_partial
+    use is_cathartiiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Cathartiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_piciforme_partial
+    use is_piciforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Piciformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_ciconiiforme_partial
+    use is_ciconiiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Ciconiiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_suliforme_partial
+    use is_suliforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Suliformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_struthioniforme_partial
+    use is_struthioniforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Struthioniformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_podicipediforme_partial
+    use is_podicipediforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Podicipediformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+is_apodiforme_partial
+    use is_apodiforme_partial($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $_, $diet, $morphology, $size, $activity)
+        check $order =~ Apodiformes
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
+        animals.characteristic(size, $size)
+        animals.characteristic(activity, $activity)
+
+# ================================================================
+# SUB-OBJETIVO TRIO 3/5: habitat + diet + morphology
+# ================================================================
+
+is_partial_trio
+    use is_partial_trio($bird_id, $order, $family)
+    when
+        animals.bird_profile($bird_id, $_, $_, $order, $family, $habitat, $diet, $morphology, $_, $_)
+        animals.characteristic(habitat, $habitat)
+        animals.characteristic(diet, $diet)
+        animals.characteristic(morphology, $morphology)
