@@ -1,27 +1,3 @@
-# Backward chaining rules for bird identification.
-# All fact calls on a single line for Pyke 1.1.1 compatibility.
-#
-# ESTRUCTURA DE PRUEBA:
-#
-# NIVEL EXACTO (5/5):
-#   taxonomy($bird_id, $order, $family)
-#     -> is_<orden>_exact($bird_id, $order, $family)
-#          -> bird_profile + 5 characteristic facts
-#
-# NIVEL PARCIAL 4/5:
-#   taxonomy_partial($bird_id, $order, $family, $score)
-#     -> is_<orden>_partial($bird_id, $order, $family)
-#          -> bird_profile + 4 characteristic facts (1 libre)
-#          -> assert score_4
-#
-# NIVEL PARCIAL 3/5:
-#   taxonomy_partial($bird_id, $order, $family, $score)
-#     -> is_partial_trio($bird_id, $order, $family)
-#          -> bird_profile + habitat + diet + morphology
-
-# ================================================================
-# META EXACTA: taxonomy
-# ================================================================
 
 taxonomy_accipitriformes
     use taxonomy($bird_id, $order, $family)
@@ -113,10 +89,7 @@ taxonomy_apodiformes
     when
         is_apodiforme($bird_id, $order, $family)
 
-# ================================================================
-# META PARCIAL: taxonomy_partial
-# Pyke intenta primero 4/5 para cada orden, luego el trio 3/5.
-# ================================================================
+
 
 partial_accipitriformes_4
     use taxonomy_partial($bird_id, $order, $family, score_4)
@@ -213,9 +186,7 @@ partial_trio_3
     when
         is_partial_trio($bird_id, $order, $family)
 
-# ================================================================
-# SUB-OBJETIVOS EXACTOS (5/5)
-# ================================================================
+
 
 is_accipitriforme
     use is_accipitriforme($bird_id, $order, $family)
@@ -415,11 +386,7 @@ is_apodiforme
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# ================================================================
-# SUB-OBJETIVOS PARCIALES 4/5
-# Cada uno deja UNA caracteristica libre. Pyke hace la unificacion
-# de las 4 restantes y el encadenamiento sigue siendo real.
-# ================================================================
+
 
 is_accipitriforme_partial
     use is_accipitriforme_partial($bird_id, $order, $family)
@@ -601,9 +568,7 @@ is_apodiforme_partial
         animals.characteristic(size, $size)
         animals.characteristic(activity, $activity)
 
-# ================================================================
-# SUB-OBJETIVO TRIO 3/5: habitat + diet + morphology
-# ================================================================
+
 
 is_partial_trio
     use is_partial_trio($bird_id, $order, $family)

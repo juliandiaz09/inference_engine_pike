@@ -29,12 +29,8 @@ identify_species
         animals.candidate($bird_id)
         animals.taxonomy($bird_id, $order, $family)
 
-# ================================================================
-# BLOQUE 2 - COINCIDENCIA PARCIAL 4/5
-# Cada regla deja UNA caracteristica libre ($_ en esa posicion).
-# Pyke aun hace la unificacion y el encadenamiento; el score_4
-# es un simbolo que permite distinguir estos resultados en Python.
-# ================================================================
+
+# BLOQUE 2 
 
 partial_4_no_habitat
     foreach
@@ -86,11 +82,8 @@ partial_4_no_activity
     assert
         animals.partial_match($bird_id, $order, $family, score_4)
 
-# ================================================================
-# BLOQUE 3 - COINCIDENCIA PARCIAL 3/5
-# Usa el trio mas diagnostico segun analisis: habitat + diet + morphology.
-# Size y activity libres.
-# ================================================================
+
+# BLOQUE 3
 
 partial_3_habitat_diet_morphology
     foreach
@@ -101,9 +94,9 @@ partial_3_habitat_diet_morphology
     assert
         animals.partial_match($bird_id, $order, $family, score_3)
 
-# ================================================================
-# BLOQUE 4 - CLASIFICACION TAXONOMICA (solo para candidatos exactos)
-# ================================================================
+
+# BLOQUE 4 
+
 
 classify_accipitriforme_diurnal
     foreach

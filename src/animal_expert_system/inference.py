@@ -406,10 +406,7 @@ class AvianExpertSystem:
         trace += ["", "Pyke no demostro ninguna hipotesis (ni parcial)."]
         return []
 
-    # ------------------------------------------------------------------
-    # Pyke helpers (API publica 1.1.1)
-    # ------------------------------------------------------------------
-
+    
     def _assert_facts(
         self,
         english: dict[str, str],
